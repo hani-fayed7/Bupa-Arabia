@@ -43,11 +43,11 @@ These shaped every milestone:
   - "Apply Now" coming back after withdrawing
   - recognising and skipping jobs with a screening questionnaire
 
-  The first real run (2026-09-25) confirmed the mismatch handling. It stopped at a job with a screening questionnaire, and nothing was submitted.
+  Results of each run are recorded in [status.md](status.md).
 - [ ] Record the outcome in [status.md](status.md).
 
 ### Milestone 6: Round out the suite
-- [x] `tests/specs/logged-out/login.spec.ts`: an unknown account shows the site's error, empty fields show "This field is required", and the user stays logged out. It runs in the `chromium-logged-out` project, with no session and no setup dependency.
+- [x] Negative login checks in `tests/specs/logged-out/login.spec.ts`, run by the new `chromium-logged-out` project.
 - [x] README: quick start and a "design rationale" section.
 - [ ] Decide whether `searchKeyword` should become a list of keywords (data-driven runs).
 

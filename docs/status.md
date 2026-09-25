@@ -22,6 +22,7 @@ Statuses:
 |---|---|---|---|
 | Config | `.env` loading and validation, apply modes | Verified | `tests/utils/env.ts`, `.env.example` |
 | Config | Strict type-check (`npm run typecheck`) | Verified | `tsconfig.json` |
+| Config | Logged-out project that runs without setup (works with an expired session) | Verified | `playwright.config.ts` |
 | Auth | Email + password login, fail-fast on rejected credentials | Verified | `LoginPage` |
 | Auth | Verification step (reCAPTCHA + emailed code) completed by a person in a headed run | Verified | `OtpPage.completeByHand`, `auth.setup.ts` |
 | Auth | Saved-session reuse and re-validation (~3s, no login) | Verified | `auth.setup.ts` |
@@ -33,14 +34,13 @@ Statuses:
 | Job | Detect "can apply" vs "already applied" | Verified (dry run) | `JobDetailsPage.canApply` |
 | Apply | Open the application page for a job | Verified (dry run) | `JobDetailsPage.startApplication` |
 | Apply | Submit and classify the outcome: submitted, CV mismatch, screening questionnaire, blocked (incl. native alert) | Built (mismatch verified live) | `ApplicationPage.submit` |
-| Apply | Decline the mismatch warning and try the next job (max `MAX_JOB_ATTEMPTS`) | Verified | `apply-job.spec.ts` |
+| Apply | Decline the mismatch warning and try the next job (max `MAX_JOB_ATTEMPTS` submissions) | Verified | `apply-job.spec.ts` |
 | Apply | Skip jobs that require a screening questionnaire (never answered automatically) | Built | `apply-job.spec.ts` |
 | Apply | Answer screening questionnaires from test data | Planned (needs the account owner's decision) | not started |
 | Verify | Confirmation message, "Withdraw Application" on the job page, entry in My Applications | Built | `apply-job.spec.ts` |
 | Clean-up | Withdraw the application (accepts the native `confirm()`) | Built | `JobDetailsPage.withdraw` |
 | Negative | Unknown account → site error message, still logged out | Verified | `tests/specs/logged-out/login.spec.ts` |
 | Negative | Empty fields → "This field is required" (checked in the browser) | Verified | `tests/specs/logged-out/login.spec.ts` |
-| Config | Logged-out project that runs without setup (works with an expired session) | Verified | `playwright.config.ts` |
 | Browsers | Firefox / WebKit projects | Planned | needs one setup project + auth file per browser |
 
 ## Verification evidence
@@ -59,11 +59,7 @@ Statuses:
 
 ## Open questions
 
-1. On the first real run, confirm these:
-   - where the confirmation message appears after submitting
-   - how the withdraw confirmation behaves
-   - that "Apply Now" comes back after withdrawing
-   - that jobs with a screening questionnaire are recognised and skipped
+1. The first real apply run still has items to confirm: see the checklist in [roadmap.md, Milestone 5](roadmap.md#milestone-5-prove-the-full-flow-live).
 
    The mismatch pop-up buttons were confirmed on the first real run (2026-09-25). That run also found the questionnaire case, which led to the `questionnaire` result.
 2. How long does a saved session last before `npm run auth` is needed again?

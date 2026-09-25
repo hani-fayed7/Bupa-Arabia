@@ -27,7 +27,7 @@ Config comes from `.env` (copy `.env.example`): `USER_EMAIL`, `USER_PASSWORD`, `
 - `tests/specs/`: `testDir`. There are three projects:
   - `setup` runs `auth.setup.ts`.
   - `chromium` runs the logged-in specs, with `dependencies: ['setup']` and `storageState: AUTH_FILE`.
-  - `chromium-logged-out` runs `tests/specs/logged-out/**`, with no session and no setup dependency (e.g. negative login checks, which must use made-up accounts, never the real one).
+  - `chromium-logged-out` runs `tests/specs/logged-out/**`, with no session and no setup dependency, starting with only the cookie consent in localStorage (e.g. negative login checks, which must use made-up accounts, never the real one).
 - `tests/pages/`: page objects extending `BasePage`. Locators are `readonly` fields set in the constructor. Methods express intent. POMs may use web-first `expect` to *wait* for state, but business assertions live in specs. Pages reached only through a flow are returned by the step that opens them (`LoginPage.login()` → `OtpPage`, `JobDetailsPage.startApplication()` → `ApplicationPage`). The rest are injected via `tests/fixtures/test.ts`, so specs import `test`/`expect` from there, not from `@playwright/test`.
 - `tests/test-data/`: non-secret JSON, typed by `types.ts`. Credentials only come from `.env`.
 

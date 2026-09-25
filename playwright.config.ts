@@ -1,8 +1,19 @@
 import { defineConfig, devices } from '@playwright/test';
 import { AUTH_FILE, env } from './tests/utils/env';
 
-/** Specs that must start without a session (e.g. negative login checks). */
-const LOGGED_OUT_SPECS = /[\\/]logged-out[\\/].*\.spec\.ts/;
+/**
+ * Starting state for logged-out specs: no cookies (so no session), only the cookie-banner consent
+ * the site keeps in localStorage, so the banner never slides in over the page.
+ */
+const CONSENT_ONLY_STATE = {
+  cookies: [],
+  origins: [
+    {
+      origin: new URL(env.baseUrl).origin,
+      localStorage: [{ name: 'talentera_privacy_policy', value: '1' }],
+    },
+  ],
+};
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -41,25 +52,17 @@ export default defineConfig({
       /* Starts from the saved session. */
       name: 'chromium',
       testMatch: /.*\.spec\.ts/,
-      testIgnore: LOGGED_OUT_SPECS,
+      testIgnore: '**/logged-out/**',
       dependencies: ['setup'],
       use: { ...devices['Desktop Chrome'], storageState: AUTH_FILE },
     },
     {
-      /* Starts logged out, without setup: runs even when the saved session has expired. */
+      /* Everything in logged-out/: no session and no setup, so it runs even when the session has expired. */
       name: 'chromium-logged-out',
-      testMatch: LOGGED_OUT_SPECS,
-      use: { ...devices['Desktop Chrome'] },
+      testDir: './tests/specs/logged-out',
+      use: { ...devices['Desktop Chrome'], storageState: CONSENT_ONLY_STATE },
     },
-    /* Other browsers are optional. The server ties a session to the browser's user agent, so a
-       session saved by the Chromium setup is rejected elsewhere: each browser needs its own setup
-       project and auth file.
-    {
-      name: 'firefox',
-      testMatch: /.*\.spec\.ts/,
-      dependencies: ['setup'],
-      use: { ...devices['Desktop Firefox'], storageState: AUTH_FILE },
-    },
-    */
+    /* Other browsers are optional. The server ties a session to the browser's user agent, so each
+       browser needs its own setup project and auth file (and its own logged-out project). */
   ],
 });

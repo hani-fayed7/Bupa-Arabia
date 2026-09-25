@@ -19,17 +19,14 @@ npm test                 # login checks + search → apply → verify → withdr
 ## Design rationale
 
 - **The reCAPTCHA is never bypassed.** Every login ends with a reCAPTCHA checkbox and an emailed 4-digit code. A person completes that step once (`npm run auth`). The session is saved, and every later run checks it and reuses it in about 3 seconds. Unattended runs need the platform to provide a CAPTCHA-free test environment, and `OtpPage.verify(code)` is already in place for that.
-- **Three Playwright projects:**
-  - `setup` checks the saved session, or runs the login.
-  - `chromium` runs the logged-in specs from the saved session.
-  - `chromium-logged-out` runs specs that must start without a session. It doesn't depend on setup, so they still run when the session has expired.
+- **Three Playwright projects:** `setup` (check or create the session), `chromium` (logged-in specs) and `chromium-logged-out` (specs that must start without a session, and still run when it has expired). See the [walkthrough](docs/walkthrough.md#8-extending-the-suite).
 - **Page Object Model with clear roles.**
   - Page objects hold locators and actions, and wait for the state the next step needs.
   - Specs decide what to check and make the assertions.
   - A step that lands on a new page returns that page object (`login()` → `OtpPage`).
   - Fixtures create the page objects.
 - **Locators a user would recognise.** Role, label, placeholder or alt text first. Stable form ids and names come next. Never styling classes or URLs that carry a session token.
-- **Results instead of guesses.** Applying can end in several ways on this site. `ApplicationPage.submit()` returns `submitted | mismatch | questionnaire | blocked` with the site's own message. The spec skips jobs it can't apply to cleanly and tries the next one.
+- **Results instead of guesses.** Applying can end in several ways on this site. `ApplicationPage.submit()` returns `submitted | mismatch | questionnaire | blocked` with what the site showed (pop-up or alert text, or the questionnaire URL). The spec skips jobs it can't apply to cleanly and tries the next one.
 - **Safe on a live site.**
   - The default mode applies, checks the result, then withdraws. `APPLY_MODE=dry-run` never submits.
   - Screening questionnaires are never answered automatically.

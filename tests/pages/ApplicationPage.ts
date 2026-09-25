@@ -1,6 +1,7 @@
 import { expect, type Dialog, type Locator, type Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
+/** `message` is what the site showed: the pop-up or alert text, or the questionnaire's URL. */
 export type ApplicationOutcome =
   | { status: 'submitted' }
   /** "Your CV doesn't match the requirements…" with Apply anyway / Do not apply. */
@@ -56,7 +57,6 @@ export class ApplicationPage extends BasePage {
           `Waiting for a confirmation, questionnaire, pop-up or alert after "Apply Now" (now on ${this.page.url()})`,
         ).toBeDefined();
       }).toPass({ timeout: 30_000, intervals: [250, 500] });
-      await this.waitForLoaders();
       return outcome!;
     });
   }
@@ -67,15 +67,17 @@ export class ApplicationPage extends BasePage {
     await expect(this.modal).toBeHidden();
   }
 
+  /** Called on every poll: checks that need no browser call come first. */
   private async readOutcome(alerts: string[]): Promise<ApplicationOutcome | undefined> {
-    if (await this.confirmationMessage.isVisible()) return { status: 'submitted' };
-    if (new URL(this.page.url()).pathname.includes('/answersheet/')) {
-      return { status: 'questionnaire', message: 'screening questionnaire required before submitting' };
-    }
-    if (await this.applyAnywayButton.isVisible()) return { status: 'mismatch', message: await this.modalText() };
+    const url = this.page.url();
+    if (new URL(url).pathname.includes('/answersheet/')) return { status: 'questionnaire', message: url };
     if (alerts.length > 0) return { status: 'blocked', message: alerts.join(' | ') };
-    const isLoading = (await this.loadingIndicators.count()) > 0;
-    if (!isLoading && (await this.modal.isVisible())) return { status: 'blocked', message: await this.modalText() };
+    if (await this.confirmationMessage.isVisible()) return { status: 'submitted' };
+    if (await this.applyAnywayButton.isVisible()) return { status: 'mismatch', message: await this.modalText() };
+    // The loading spinner also opens in #modalpopup, so a modal only counts once nothing is loading.
+    if ((await this.modal.isVisible()) && (await this.loadingIndicators.count()) === 0) {
+      return { status: 'blocked', message: await this.modalText() };
+    }
     return undefined;
   }
 

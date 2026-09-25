@@ -4,13 +4,7 @@ How this project is set up, how it's organised, and the conventions the code fol
 
 ## 1. Getting started
 
-```bash
-npm install
-npx playwright install chromium
-cp .env.example .env          # then fill in USER_EMAIL and USER_PASSWORD
-npm run auth                  # headed login: tick "I'm not a robot", type the emailed code, click Verify
-npm test                      # reuses the saved session; default mode applies, verifies, then withdraws
-```
+Follow the [Quick start in the README](../README.md#quick-start) first. Then:
 
 **Settings** (`.env`; a value set in the shell always wins over the file):
 
@@ -19,7 +13,7 @@ npm test                      # reuses the saved session; default mode applies, 
 | `BASE_URL` | Site root including the language, `https://careers.bupa.com.sa/en/`. Keep the trailing slash. |
 | `USER_EMAIL`, `USER_PASSWORD` | Test account. It needs a CV on file. |
 | `APPLY_MODE` | `apply-withdraw` (default), `dry-run` (never submits), or `apply` (keeps the application). |
-| `MAX_JOB_ATTEMPTS` | How many jobs to try when the site says the CV doesn't match (default 5). |
+| `MAX_JOB_ATTEMPTS` | Maximum submission attempts (default 5). A job that ends in a CV mismatch, a questionnaire or a blocking message is skipped and counts as one. |
 
 **Everyday commands:**
 
@@ -65,7 +59,7 @@ npm test
       ├─ headless?                       → fail: "run npm run auth first"
       └─ headed: log in → a person completes reCAPTCHA + code → save the session
  └─ project "chromium-logged-out"  (no setup, no session)
-      └─ logged-out/login.spec.ts: unknown account → site error; empty fields → "This field is required"
+      └─ logged-out/login.spec.ts (negative login checks)
  └─ project "chromium"  (depends on setup, starts from the saved session)
       └─ apply-job.spec.ts
            1. search jobs for the keyword in test-data/jobs.json
@@ -106,7 +100,7 @@ export class JobDetailsPage extends BasePage {
 - **Methods describe intent** (`startApplication`, `withdraw`), not raw clicks.
 - **A step that lands on a new page returns that page object.** For example, `LoginPage.login()` returns an `OtpPage`, and `JobDetailsPage.startApplication()` returns an `ApplicationPage`.
 - **Page objects wait; specs assert.** A page object may use `expect(...)` to wait for the state the next step depends on. Checking business outcomes belongs to the spec.
-- **When the site can respond in several ways, return the outcome instead of guessing.** For example, `ApplicationPage.submit()` returns `submitted | mismatch | questionnaire | blocked` with the site's message, and the spec decides what to do next.
+- **When the site can respond in several ways, return the outcome instead of guessing.** For example, `ApplicationPage.submit()` returns `submitted | mismatch | questionnaire | blocked` with what the site showed (pop-up or alert text, or the questionnaire URL), and the spec decides what to do next.
 - **Navigate with `this.open('path/')`:** relative, with no leading slash. `/login/` would drop the `/en` language prefix, so `open()` rejects it.
 - **Handle native `alert()`/`confirm()` with `withDialogHandler()`** from `BasePage`. It removes the handler afterwards, so it can't answer a later dialog.
 - **Explain site behaviour in comments.** A comment above a locator or method explains *why*: a site quirk, or a choice that isn't obvious.
@@ -136,9 +130,9 @@ When the site shows the same control twice with the same target, such as the two
 
 | Behaviour | Consequence in the code |
 |---|---|
-| Job pages redirect to login when you're not logged in | Every spec depends on the `setup` project |
+| Job pages redirect to login when you're not logged in | Logged-in specs (the `chromium` project) depend on the `setup` project |
 | The session is tied to the browser's user agent | All contexts use `devices['Desktop Chrome']`. Another browser needs its own setup project and auth file. |
-| Accepting the cookie banner slides it off-screen, and consent is kept in localStorage | `acceptIfShown()` checks the viewport (after a short slide-in window). The saved session keeps the consent. |
+| Accepting the cookie banner slides it off-screen, and consent is kept in localStorage | `acceptIfShown()` checks the viewport (after a short slide-in window). The saved session keeps the consent, and the logged-out project starts with only that consent flag, so the banner never shows there. |
 | "Apply Now" leads to a separate page, `/job-application/?jb_id=…` | `ApplicationPage` is a page, not a pop-up |
 | Submitting runs a pre-check first | The result can be a submission, a CV-mismatch pop-up, a redirect to a screening questionnaire (`/answersheet/`, nothing is submitted until it's answered), an eligibility pop-up, or an `alert()` |
 | Withdrawing asks with a native `confirm()` | `withdraw()` accepts it through `withDialogHandler()` |
@@ -153,7 +147,7 @@ When the site shows the same control twice with the same target, such as the two
 
 **A new spec:**
 - **Needs to be logged in:** put it in `tests/specs/*.spec.ts`. It runs in the `chromium` project, which depends on `setup` and starts from the saved session.
-- **Must start logged out** (such as a wrong-password check): put it in `tests/specs/logged-out/`. It runs in `chromium-logged-out`, with no session and no setup. It still runs when the saved session has expired, and it can never trigger the verification step. Use made-up accounts only: failed logins against the real account could lock it.
+- **Must start logged out** (such as a wrong-password check): put it in `tests/specs/logged-out/`. It runs in `chromium-logged-out`, with no session and no setup (only the cookie consent is pre-set). It still runs when the saved session has expired, and it can never trigger the verification step. Use made-up accounts only: failed logins against the real account could lock it.
 
 **New test data:** add a JSON file under `tests/test-data/` and describe its shape in `types.ts`.
 
