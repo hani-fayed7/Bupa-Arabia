@@ -38,13 +38,15 @@ Statuses:
 | Apply | Answer screening questionnaires from test data | Planned (needs the account owner's decision) | not started |
 | Verify | Confirmation message, "Withdraw Application" on the job page, entry in My Applications | Built | `apply-job.spec.ts` |
 | Clean-up | Withdraw the application (accepts the native `confirm()`) | Built | `JobDetailsPage.withdraw` |
-| Negative | Wrong-password login test in the suite | Planned | `tests/specs/login.spec.ts` |
+| Negative | Unknown account → site error message, still logged out | Verified | `tests/specs/logged-out/login.spec.ts` |
+| Negative | Empty fields → "This field is required" (checked in the browser) | Verified | `tests/specs/logged-out/login.spec.ts` |
+| Config | Logged-out project that runs without setup (works with an expired session) | Verified | `playwright.config.ts` |
 | Browsers | Firefox / WebKit projects | Planned | needs one setup project + auth file per browser |
 
 ## Verification evidence
 
 - `npm run typecheck`: clean.
-- `APPLY_MODE=dry-run npm test`: 2 passed (setup + apply spec) in about 13s.
+- `APPLY_MODE=dry-run npm test`: 4 passed (setup, 2 login checks, apply spec) in about 20s.
 - First real login with `npm run auth` confirmed the logged-in flag (`is_logged_1`, cookie `ISLOGGED…=1`).
 - Throwaway live checks with a made-up account passed: the cookie banner is shown, then accepted and stays accepted; the wrong-password error appears; `login()` fails fast.
 

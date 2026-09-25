@@ -47,8 +47,8 @@ These shaped every milestone:
 - [ ] Record the outcome in [status.md](status.md).
 
 ### Milestone 6: Round out the suite
-- [ ] `tests/specs/login.spec.ts`: wrong password shows the site's error, and the user stays logged out. It runs with an empty session and never triggers the verification step.
-- [ ] README: a short "design rationale" section linking to [walkthrough.md](walkthrough.md).
+- [x] `tests/specs/logged-out/login.spec.ts`: an unknown account shows the site's error, empty fields show "This field is required", and the user stays logged out. It runs in the `chromium-logged-out` project, with no session and no setup dependency.
+- [x] README: quick start and a "design rationale" section.
 - [ ] Decide whether `searchKeyword` should become a list of keywords (data-driven runs).
 
 ## Later / optional

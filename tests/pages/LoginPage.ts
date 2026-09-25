@@ -8,14 +8,21 @@ import { OtpPage } from './OtpPage';
  * The form is a classic full-page POST to /app/control/byt_auth_manager:
  * - valid credentials → the verification code step (OtpPage)
  * - invalid credentials → 302 back to /en/login/ with an alert paragraph inside the form
+ * - empty fields → blocked in the browser: per-field errors plus a form-level alert
  */
 export class LoginPage extends BasePage {
   readonly form: Locator;
   readonly emailInput: Locator;
   readonly passwordInput: Locator;
   readonly loginButton: Locator;
-  /** Server-side error, e.g. "You've entered an incorrect email or password, please try again." */
+  /**
+   * Form-level alert. After a server rejection: "You've entered an incorrect email or password,
+   * please try again." After client-side validation: "There was a problem submitting this form…".
+   */
   readonly errorMessage: Locator;
+  /** Client-side field errors, e.g. "This field is required". */
+  readonly emailError: Locator;
+  readonly passwordError: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -24,6 +31,8 @@ export class LoginPage extends BasePage {
     this.passwordInput = this.form.getByRole('textbox', { name: 'Enter your password' });
     this.loginButton = this.form.locator('#loginBtn');
     this.errorMessage = this.form.locator('.alert');
+    this.emailError = this.form.locator('#err-email');
+    this.passwordError = this.form.locator('#err-password');
   }
 
   async goto(): Promise<void> {

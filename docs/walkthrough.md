@@ -36,8 +36,10 @@ npm test                      # reuses the saved session; default mode applies, 
 
 ```
 playwright.config.ts   projects: setup → chromium (reuses playwright/.auth/user.json)
+                                 chromium-logged-out (no session, no setup)
 tests/
   specs/               what is tested: auth.setup.ts, apply-job.spec.ts
+    logged-out/        specs that must start without a session (login.spec.ts)
   pages/               how to use each page: page objects extending BasePage
     components/        pieces shared by every page (CookieBanner)
   fixtures/test.ts     hands page objects to specs
@@ -62,6 +64,8 @@ npm test
       ├─ open the home page: logged in?  → yes: re-save the session, done
       ├─ headless?                       → fail: "run npm run auth first"
       └─ headed: log in → a person completes reCAPTCHA + code → save the session
+ └─ project "chromium-logged-out"  (no setup, no session)
+      └─ logged-out/login.spec.ts: unknown account → site error; empty fields → "This field is required"
  └─ project "chromium"  (depends on setup, starts from the saved session)
       └─ apply-job.spec.ts
            1. search jobs for the keyword in test-data/jobs.json
@@ -147,11 +151,9 @@ When the site shows the same control twice with the same target, such as the two
 2. If a spec starts from it, add a fixture in `tests/fixtures/test.ts`.
 3. Import `test`/`expect` from `../fixtures/test` in the spec, not from `@playwright/test`.
 
-**A new spec:** put it in `tests/specs/*.spec.ts`. It automatically depends on `setup` and starts logged in. For a test that needs a logged-out browser (such as a wrong-password check), clear the session:
-
-```ts
-test.use({ storageState: { cookies: [], origins: [] } });
-```
+**A new spec:**
+- **Needs to be logged in:** put it in `tests/specs/*.spec.ts`. It runs in the `chromium` project, which depends on `setup` and starts from the saved session.
+- **Must start logged out** (such as a wrong-password check): put it in `tests/specs/logged-out/`. It runs in `chromium-logged-out`, with no session and no setup. It still runs when the saved session has expired, and it can never trigger the verification step. Use made-up accounts only: failed logins against the real account could lock it.
 
 **New test data:** add a JSON file under `tests/test-data/` and describe its shape in `types.ts`.
 

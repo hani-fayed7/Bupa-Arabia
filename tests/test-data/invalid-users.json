@@ -1,0 +1,6 @@
+{
+  "unknownAccount": {
+    "email": "qa.automation.unknown@example.com",
+    "password": "NotARealPassword123!"
+  }
+}

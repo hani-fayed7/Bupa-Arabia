@@ -1,6 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 import { AUTH_FILE, env } from './tests/utils/env';
 
+/** Specs that must start without a session (e.g. negative login checks). */
+const LOGGED_OUT_SPECS = /[\\/]logged-out[\\/].*\.spec\.ts/;
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -35,10 +38,18 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
     {
+      /* Starts from the saved session. */
       name: 'chromium',
       testMatch: /.*\.spec\.ts/,
+      testIgnore: LOGGED_OUT_SPECS,
       dependencies: ['setup'],
       use: { ...devices['Desktop Chrome'], storageState: AUTH_FILE },
+    },
+    {
+      /* Starts logged out, without setup: runs even when the saved session has expired. */
+      name: 'chromium-logged-out',
+      testMatch: LOGGED_OUT_SPECS,
+      use: { ...devices['Desktop Chrome'] },
     },
     /* Other browsers are optional. The server ties a session to the browser's user agent, so a
        session saved by the Chromium setup is rejected elsewhere: each browser needs its own setup
