@@ -1,4 +1,4 @@
-import { type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 /** /en/my-applications/: one fieldset per application (Recent Application / Company Name / Application Date). */
@@ -16,7 +16,7 @@ export class MyApplicationsPage extends BasePage {
 
   async goto(): Promise<void> {
     await this.open('my-applications/');
-    await this.waitForLoaders();
+    await expect(this.heading).toBeVisible();
   }
 
   application(jobTitle: string): Locator {

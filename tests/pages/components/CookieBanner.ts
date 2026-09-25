@@ -28,6 +28,10 @@ export class CookieBanner {
     await expect(this.container).not.toBeInViewport();
   }
 
+  /**
+   * The banner slides in only after page load, so an instant geometry check reports it as
+   * hidden on a fresh page. Allow a short window for the slide-in.
+   */
   private async isInViewport(): Promise<boolean> {
     try {
       await expect(this.container).toBeInViewport({ timeout: 1_000 });

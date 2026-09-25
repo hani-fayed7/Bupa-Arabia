@@ -1,4 +1,4 @@
-import { expect, type Dialog, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 import { ApplicationPage } from './ApplicationPage';
 import { BasePage } from './BasePage';
 
@@ -43,14 +43,13 @@ export class JobDetailsPage extends BasePage {
 
   /** Withdraw asks for confirmation with a native confirm(), which is accepted here. */
   async withdraw(): Promise<void> {
-    const accept = (dialog: Dialog) => void dialog.accept();
-    this.page.on('dialog', accept);
-    try {
-      await this.withdrawLink.click();
-      await expect(this.withdrawLink).toBeHidden();
-      await this.waitForLoaders();
-    } finally {
-      this.page.off('dialog', accept);
-    }
+    await this.withDialogHandler(
+      (dialog) => void dialog.accept(),
+      async () => {
+        await this.withdrawLink.click();
+        await expect(this.withdrawLink).toBeHidden();
+        await this.waitForLoaders();
+      },
+    );
   }
 }

@@ -30,7 +30,7 @@ export class LoginPage extends BasePage {
     await this.open('login/');
   }
 
-  /** Fills and submits the form without assuming the outcome (used by negative tests). */
+  /** Fills and submits the form without assuming the outcome (e.g. for a wrong-password check). */
   async submitCredentials(email: string, password: string): Promise<void> {
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);

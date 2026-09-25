@@ -1,4 +1,4 @@
-import { expect, type Locator, type Page } from '@playwright/test';
+import { expect, type Dialog, type Locator, type Page } from '@playwright/test';
 import { CookieBanner } from './components/CookieBanner';
 
 /**
@@ -15,12 +15,12 @@ export abstract class BasePage {
    */
   readonly loadingIndicators: Locator;
   /** The server renders `is_logged_0` / `is_logged_1` on <body>: the site's own auth flag. */
-  private readonly body: Locator;
+  private readonly loggedInFlag: Locator;
 
   constructor(readonly page: Page) {
     this.cookieBanner = new CookieBanner(page);
     this.loadingIndicators = page.getByAltText(/^Loading/).filter({ visible: true });
-    this.body = page.locator('body');
+    this.loggedInFlag = page.locator('body.is_logged_1');
   }
 
   /**
@@ -43,12 +43,24 @@ export abstract class BasePage {
   }
 
   async isLoggedIn(): Promise<boolean> {
-    const classes = (await this.body.getAttribute('class')) ?? '';
-    return /\bis_logged_1\b/.test(classes);
+    return (await this.loggedInFlag.count()) > 0;
   }
 
   /** Waits for the server-rendered logged-in flag (survives the redirects after login). */
   async waitForLoggedIn(options?: { timeout?: number }): Promise<void> {
-    await expect(this.body).toHaveClass(/\bis_logged_1\b/, options);
+    await expect(this.loggedInFlag).toBeAttached(options);
+  }
+
+  /**
+   * Runs `action` with `onDialog` handling native alert()/confirm() dialogs, and removes the
+   * handler afterwards so it cannot answer a later dialog in the same test.
+   */
+  protected async withDialogHandler<T>(onDialog: (dialog: Dialog) => void, action: () => Promise<T>): Promise<T> {
+    this.page.on('dialog', onDialog);
+    try {
+      return await action();
+    } finally {
+      this.page.off('dialog', onDialog);
+    }
   }
 }

@@ -34,19 +34,14 @@ export class JobSearchPage extends BasePage {
     await this.waitForResults();
   }
 
-  jobCard(title: string): Locator {
-    return this.jobCards.filter({ has: this.page.getByRole('heading', { name: title, exact: true }) });
-  }
-
   /** Title and details URL of every job card on the current results page, in display order. */
   async listJobs(): Promise<JobSummary[]> {
-    const titleLinks = await this.jobCards.getByRole('heading', { level: 3 }).getByRole('link').all();
-    return Promise.all(
-      titleLinks.map(async (link) => ({
-        title: (await link.innerText()).trim(),
-        url: new URL((await link.getAttribute('href')) ?? '', this.page.url()).href,
-      })),
-    );
+    return this.jobCards
+      .getByRole('heading', { level: 3 })
+      .getByRole('link')
+      .evaluateAll((links) =>
+        (links as HTMLAnchorElement[]).map((link) => ({ title: link.innerText.trim(), url: link.href })),
+      );
   }
 
   private async waitForResults(): Promise<void> {
