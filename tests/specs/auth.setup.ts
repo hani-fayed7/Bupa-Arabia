@@ -1,7 +1,5 @@
 import fs from 'node:fs';
-import { test as setup } from '@playwright/test';
-import { HomePage } from '../pages/HomePage';
-import { LoginPage } from '../pages/LoginPage';
+import { test as setup } from '../fixtures/test';
 import { AUTH_FILE, env } from '../utils/env';
 
 /**
@@ -18,8 +16,7 @@ const HUMAN_STEP_TIMEOUT_MS = 4 * 60_000;
 // Start from the saved session, if there is one, so it can be validated and reused.
 setup.use({ storageState: fs.existsSync(AUTH_FILE) ? AUTH_FILE : undefined });
 
-setup('authenticate', async ({ page, headless }) => {
-  const homePage = new HomePage(page);
+setup('authenticate', async ({ page, headless, homePage, loginPage }) => {
   await homePage.goto();
   if (await homePage.isLoggedIn()) {
     // Re-save so any cookies the server rotated are kept fresh.
@@ -33,7 +30,8 @@ setup('authenticate', async ({ page, headless }) => {
     );
   }
 
-  const loginPage = new LoginPage(page);
+  // Room for the person on top of the login itself.
+  setup.setTimeout(HUMAN_STEP_TIMEOUT_MS + 60_000);
   await loginPage.goto();
   await loginPage.cookieBanner.acceptIfShown();
   const otpPage = await loginPage.login(env.userEmail, env.userPassword);
