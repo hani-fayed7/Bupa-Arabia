@@ -4,13 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A technical assessment for Talentera (Bayt.com): Playwright + TypeScript end-to-end automation of the **live** careers portal https://careers.bupa.com.sa/ (a Talentera deployment). It covers logging in, then searching for a job, applying, verifying and withdrawing. The Page Object Model is used throughout. Clear, defensible design matters as much as passing tests.
+A technical assessment for Talentera (Bayt.com), about the **live** careers portal https://careers.bupa.com.sa/ (a Talentera deployment). **Scope is the careers portal only.** The corporate site bupa.com.sa is out of scope.
+- **Part 1 (the code):** Playwright + TypeScript end-to-end automation of logging in, then searching for a job, applying, verifying and withdrawing. The Page Object Model is used throughout.
+- **Part 2 (a document):** [docs/test-automation-plan.md](docs/test-automation-plan.md), a plan for testing the whole portal, based on a full tour. It includes findings F1–F15 and a scenario catalogue with IDs such as JD-10.
+
+Clear, defensible design matters as much as passing tests.
 
 ## Commands
 
 ```bash
 npm run auth                      # headed login; a person solves reCAPTCHA + types the emailed code → saves playwright/.auth/<browser>.json (one per browser in BROWSERS)
-npm test                          # setup project (validates saved session, ~3s) + all specs
+npm test                          # setup-<browser> projects (validate saved sessions, ~3s) + all specs
 npm run typecheck                 # tsc --noEmit; Playwright itself never type-checks
 npm run report                    # open the last HTML report (traces/videos kept on failure)
 
@@ -18,7 +22,7 @@ npx playwright test apply-job.spec.ts            # single spec file (setup runs 
 npx playwright test -g "can apply"               # single test by title
 APPLY_MODE=dry-run npx playwright test           # no submission; shell env overrides .env
 npx playwright test --project='setup-*'          # just re-validate the saved session(s)
-BROWSERS=chromium,firefox,webkit npm test        # cross-browser run (each browser needs its own `npm run auth` login)
+BROWSERS=chromium,firefox,webkit npm test        # cross-browser run: needs one account per browser (USER_EMAIL_<BROWSER>) + each browser's `npm run auth`
 SLOW_MO=500 npm run test:headed                  # slowed-down visible run for demos
 ```
 
@@ -26,9 +30,8 @@ Config comes from `.env` (copy `.env.example`): `USER_EMAIL`, `USER_PASSWORD` (o
 
 ## Architecture
 
-- `tests/specs/`: `testDir`. There are three projects:
-  The config builds three projects for each browser in `BROWSERS` (default `chromium`). The server ties a session to the user agent, so each browser has its own session file, `authFile(browser)` → `playwright/.auth/<browser>.json`.
-  - `setup-<browser>` runs `auth.setup.ts`, which picks the file via the `browserName` fixture.
+- `tests/specs/`: `testDir`. The config builds three projects for each browser in `BROWSERS` (default `chromium`). The server ties a session to the user agent, so each browser has its own session file, `authFile(browser)` → `playwright/.auth/<browser>.json`.
+  - `setup-<browser>` runs `auth.setup.ts`, which picks the file and the account (`env.credentials(browser)`) via the `browserName` fixture.
   - `<browser>` runs the logged-in specs, with `dependencies: ['setup-<browser>']` and that browser's session.
   - `<browser>-logged-out` runs `tests/specs/logged-out/**`, with no session and no setup dependency, starting with only the cookie consent in localStorage (e.g. negative login checks, which must use made-up accounts, never the real one).
 - `tests/pages/`: page objects extending `BasePage`. Locators are `readonly` fields set in the constructor. Methods express intent. POMs may use web-first `expect` to *wait* for state, but business assertions live in specs. Pages reached only through a flow are returned by the step that opens them (`LoginPage.login()` → `OtpPage`, `JobDetailsPage.startApplication()` → `ApplicationPage`). The rest are injected via `tests/fixtures/test.ts`, so specs import `test`/`expect` from there, not from `@playwright/test`.
@@ -47,8 +50,8 @@ Login state is the server-rendered `<body>` class `is_logged_1` / `is_logged_0` 
 ### Site behaviour the code relies on
 - **baseURL is `…/en/` with a trailing slash.** Page paths must be relative with no leading slash (`open('login/')`). A leading slash drops `/en`, so `BasePage.open()` rejects it.
 - **One active session per account.** A new login (another browser, or the website) ends the previous session. `auth.setup.ts` refuses to run when selected browsers share an account. Use `USER_EMAIL_<BROWSER>` / `USER_PASSWORD_<BROWSER>`, or one browser at a time. Logged-in pages call `BasePage.ensureLoggedIn()` to fail fast. Firefox and WebKit logins showed no reCAPTCHA; Chromium did.
-- **The session is bound to the user agent.** Any browser context (including ad-hoc probe scripts) must use `devices['Desktop Chrome']` or the saved session is treated as anonymous. Other browsers would need their own setup project and auth file.
-- **Job detail pages require login** (anonymous → 302 to `/en/login/`).
+- **The session is bound to the user agent.** Any browser context, including ad-hoc probe scripts, must use the same device profile as the browser that saved the session: `Desktop Chrome` for `chromium.json`, `Desktop Firefox` for `firefox.json`, `Desktop Safari` for `webkit.json`. Otherwise the session is treated as anonymous.
+- **Anonymous access to job pages is inconsistent** (plan F11): a 302 to `/en/login/` at first, a 200 later. Anonymous job pages still show "Apply Now", so logged-in state must be checked (`ensureLoggedIn()`), not inferred from the page content. `/job-application/` always requires login.
 - **Loaders:** every spinner is an `<img alt="Loading...">`, so `BasePage.waitForLoaders()` uses `getByAltText(/^Loading/)`. `#modaloverlay`/`#modalpopup` (jQuery SimpleModal) are shared by *all* pop-ups, so don't use them as a "loading" signal. Never use `networkidle` (Google Analytics and Hotjar keep firing).
 - **Cookie banner** (`#privacy_sticky`): accepting only slides it off-screen, and consent lives in localStorage (saved in storageState). Use `acceptIfShown()` (a viewport check), not `addLocatorHandler`.
 - **Stack:** a legacy jQuery/server-rendered stack with Vue-rendered job lists. Utility CSS classes (`grid-10`, `margin_*`) are unstable, so never locate by them. Locator priority: role/label/placeholder → stable ids/names → scoped text. `.job-card`, `#default-login` and `#loginBtn` are acceptable component/form hooks.
@@ -64,5 +67,11 @@ Login state is the server-rendered `<body>` class `is_logged_1` / `is_logged_0` 
 ## Working on the live site
 
 - Real applications reach Bupa HR. Run non-dry-run applies only when the user asks. Use `APPLY_MODE=dry-run` to check changes to the apply flow.
-- Avoid repeated or failed logins (they risk extra CAPTCHA friction). Probe logged-in pages by loading `playwright/.auth/chromium.json` into a `Desktop Chrome` context instead of logging in.
+- Avoid repeated or failed logins: they risk extra CAPTCHA friction, and a new login ends the saved session (one session per account). Probe logged-in pages by loading a saved `playwright/.auth/<browser>.json` into a context with that browser's device profile. Keep probes read-only: no saving, applying, editing or logging out.
 - `workers: 1`, `retries: 0` on purpose: one real account, and a real side effect on every run.
+
+## Docs
+
+- `docs/status.md`, `docs/roadmap.md` and `docs/walkthrough.md` describe the current state, the milestones and the conventions. `docs/test-automation-plan.md` is the part 2 deliverable.
+- **Whenever behaviour, commands, settings or findings change, update those docs and this file in the same change.** The user expects the docs to stay current without being reminded.
+- Word copies of the plan and an interview prep pack are kept outside the repo, in the `Technical Assessment` folder. They're generated from the Markdown, so regenerate them when their source changes.

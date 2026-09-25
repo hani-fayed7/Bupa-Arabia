@@ -142,7 +142,7 @@ When the site shows the same control twice with the same target, such as the two
 | Behaviour | Consequence in the code |
 |---|---|
 | The site keeps **one active session per account**: a new login ends the previous one | Browsers sharing an account can't run logged-in specs together. The setup stops with an explanation, and logged-in pages call `ensureLoggedIn()` to fail fast if the session was ended. |
-| Job pages redirect to login when you're not logged in | Logged-in specs (the `<browser>` projects) depend on their `setup-<browser>` project |
+| Account pages and the application page need a login. Anonymous job pages were inconsistent (a 302 to login at first, a 200 later), and they still show "Apply Now" | Logged-in specs (the `<browser>` projects) depend on their `setup-<browser>` project, and logged-in pages call `ensureLoggedIn()` instead of trusting the page content |
 | The session is tied to the browser's user agent | All contexts use `devices['Desktop Chrome']`. Another browser needs its own setup project and auth file. |
 | Accepting the cookie banner slides it off-screen, and consent is kept in localStorage | `acceptIfShown()` checks the viewport (after a short slide-in window). The saved session keeps the consent, and the logged-out project starts with only that consent flag, so the banner never shows there. |
 | "Apply Now" leads to a separate page, `/job-application/?jb_id=…` | `ApplicationPage` is a page, not a pop-up |

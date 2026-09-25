@@ -3,7 +3,8 @@ import { ApplicationPage } from './ApplicationPage';
 import { BasePage } from './BasePage';
 
 /**
- * /en/saudi-arabia/jobs/<slug>-<id>/: requires login (anonymous visits redirect to /en/login/).
+ * /en/saudi-arabia/jobs/<slug>-<id>/. Anonymous access has varied (a redirect to /en/login/, or the page with
+ * "Apply Now" shown anyway), so goto() checks the session with ensureLoggedIn() instead of trusting the content.
  *
  * Application state is shown by which action is offered:
  * - "Apply Now"            → can apply
