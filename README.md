@@ -6,7 +6,7 @@ Playwright + TypeScript automation of the job application flow on https://career
 - [Walkthrough](docs/walkthrough.md): setup, structure, and how the code is written
 - [Status](docs/status.md): where each feature stands and what's verified
 - [Roadmap](docs/roadmap.md): milestones done and what comes next
-- [Test automation plan](docs/test-automation-plan.md): part 2, a site-wide testing strategy based on a full tour of the portal
+- [Test automation plan](docs/test-automation-plan.md): part 2, a testing strategy for the whole careers portal (careers.bupa.com.sa only), based on a full tour
 
 ## Quick start
 

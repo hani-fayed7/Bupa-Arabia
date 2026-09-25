@@ -46,12 +46,28 @@ These shaped every milestone:
 - `BROWSERS` setting (chromium, firefox, webkit). Each browser gets its own setup project, session file (`playwright/.auth/<browser>.json`) and logged-out project.
 - Login checks verified on Firefox and WebKit.
 - `SLOW_MO` setting for demos and headed runs.
+- The cross-browser run revealed the one-session-per-account rule. Added per-browser accounts (`USER_EMAIL_<BROWSER>`), a setup guard against shared accounts, and `ensureLoggedIn()` to fail fast when a session was ended.
+
+### Milestone 8: Part 2, portal tour and test automation plan
+- A full tour of **careers.bupa.com.sa** only (bupa.com.sa is out of scope), in English and Arabic, on desktop and mobile, including the candidate account (read-only).
+- Technical checks: accessibility (axe), load timings, security headers, robots.txt, sitemap and background calls.
+- [test-automation-plan.md](test-automation-plan.md): 15 findings, scope and priorities, test types, 38 catalogued scenarios, tooling, CI/CD and a phased rollout. There's also a Word copy outside the repo.
 
 ## Next
 
 - [x] Cross-browser run: WebKit apply flow verified. It revealed the one-session-per-account rule, so the setup now blocks shared accounts and pages detect a lost session.
 - [ ] Firefox apply flow: run it on its own (`BROWSERS=firefox`), or register a second test account for `USER_EMAIL_FIREFOX`.
 - [ ] Decide whether `searchKeyword` should become a list of keywords (data-driven runs).
+- [ ] Raise the tour findings with the platform team, starting with F1 (invalid JobPosting JSON-LD) and the accessibility failures, and get answers to plan section 14.
+
+## Towards the plan (if it's adopted)
+
+These follow the [plan's phased rollout](test-automation-plan.md#12-phased-rollout). The first items can run read-only against production, today, in this repo:
+- **API tests for job search** (plan JD-01 to JD-05), built on the `byt_job_search_manager` JSON.
+- **A JSON-LD check on every job page** (plan JD-10). It would catch F1.
+- **Security headers and cookie flags** (plan X-06).
+- **An accessibility baseline** with `@axe-core/playwright` (plan X-01, X-02).
+- **Restructure** into `tests/api`, `tests/e2e`, `tests/a11y`, `tests/seo`… (plan section 10).
 
 ## Later / optional
 

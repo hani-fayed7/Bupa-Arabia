@@ -1,6 +1,8 @@
 # Test Automation Plan: careers.bupa.com.sa
 
-A plan for testing the whole candidate portal, not only the apply flow automated in part 1. It is based on a full tour of the live site on 2026-09-25.
+A plan for testing the whole Bupa Arabia **careers portal**, not only the apply flow automated in part 1. It is based on a full tour of the live portal on 2026-09-25.
+
+**Scope boundary:** this plan covers only **careers.bupa.com.sa**: every page on that host, in English (`/en/…`) and Arabic (`/ar/…`), and the JSON endpoints behind it (`/app/control/…`). The corporate website **bupa.com.sa** (Bupa's insurance products and services) is **not** covered, even though the portal's logo and footer link to it. The same applies to the other external sites the portal links to.
 
 **Contents**
 1. [Summary](#1-summary)
@@ -22,7 +24,7 @@ A plan for testing the whole candidate portal, not only the apply flow automated
 
 ## 1. Summary
 
-The portal is a Talentera deployment with three layers:
+The careers portal is a Talentera deployment with three layers:
 - **A legacy server-rendered UI:** jQuery pages, with the job lists rendered by Vue.
 - **A JSON layer behind it:** endpoints under `/app/control/byt_*_manager`.
 - **Two languages:** English and Arabic (RTL).
@@ -45,7 +47,7 @@ Real candidates use it to find jobs and apply, so the biggest risks are:
 ## 2. How the site was explored
 
 - **Coverage:**
-  - every page linked from the navigation and footer
+  - every careers-portal page linked from its navigation and footer. Links that leave careers.bupa.com.sa were noted but not tested.
   - job search: keywords, filters, sorting, pagination, empty results, odd input
   - job pages and advanced search
   - registration and forgot-password (inspected, not submitted)
@@ -65,15 +67,17 @@ Real candidates use it to find jobs and apply, so the biggest risks are:
 
 ## 3. What the site is made of
 
+All paths are on `https://careers.bupa.com.sa`. The Arabic site mirrors them under `/ar/`.
+
 | Area | Pages and features | Notes |
 |---|---|---|
-| **Public content** | Home, About Us (Values, Impact & Growth, Diversity & Culture), Hiring Process, Training Programs, FAQ, Privacy Policy | Built from a CMS, and mostly static |
-| **Job discovery** | Search results, with 8 filter groups (Location, City, Job Role, Industry, Posted Date, Career Level, Employment Status, Employment Type), 4 sort options and 10 results per page. Also Advanced Search (keyword with a match mode, location, role, category, date, salary range, currency, gender, company type, timing, employment type), job details, similar jobs | Search runs on `GET /app/control/byt_job_search_manager` (JSON `{totalJobs, currentPage, view, jobs, cluster}`) |
-| **Identity** | Registration (a CV upload is required), login, a verification step (reCAPTCHA plus a 4-digit emailed code), forgot password (reCAPTCHA) | Password policy `VeryHard`, minimum 15 characters |
-| **Applying** | Apply page, then a pre-check with five possible outcomes: submitted, CV mismatch, screening questionnaire, blocked, or a browser alert. Also withdrawing | Covered by part 1 |
-| **Candidate workspace** | Action Center, Mailbox (with search), My Applications, Interview Invites, Account Settings, Job Alerts ("Add an Email Alert"), Saved Jobs, CV builder (target job, personal and contact details, experience, references, memberships, photo), Cover Letters | Each area has its own AJAX endpoint (mailbox, dashboards, interviews) |
+| **Portal content pages** | Home (`/en/`), About Us (`/en/page/about-us/`, plus Our Values, Our Impact & Growth, Our Diversity & Culture), Hiring Process (`/en/page/hiring-process/`), Training Programs (`/en/page/student-and-graduate-programs/`), FAQ (`/en/page/faq/`), Privacy Policy (`/en/privacy-statement/`) | The careers portal's own content pages. Built from a CMS, and mostly static. |
+| **Job discovery** | Search results (`/en/job-search-results/`), with 8 filter groups (Location, City, Job Role, Industry, Posted Date, Career Level, Employment Status, Employment Type), 4 sort options and 10 results per page. Also Advanced Search (`/en/job-search-advanced/`: keyword with a match mode, location, role, category, date, salary range, currency, gender, company type, timing, employment type), job details (`/en/saudi-arabia/jobs/<slug>-<id>/`), similar jobs | Search runs on `GET /app/control/byt_job_search_manager` (JSON `{totalJobs, currentPage, view, jobs, cluster}`) |
+| **Identity** | Registration (`/en/register-j/`, a CV upload is required), login (`/en/login/`), a verification step (reCAPTCHA plus a 4-digit emailed code), forgot password (`/en/forgot-userinfo/`, reCAPTCHA) | Password policy `VeryHard`, minimum 15 characters |
+| **Applying** | Apply page (`/en/job-application/?jb_id=<id>`), then a pre-check with five possible outcomes: submitted, CV mismatch, screening questionnaire, blocked, or a browser alert. Also withdrawing | Covered by part 1 |
+| **Candidate workspace** | Action Center (`/en/myworkspace-j/`), Mailbox (`/en/mymailbox-j/`, with search), My Applications (`/en/my-applications/`), Interview Invites (`/en/interviews-listing-j/`), Account Settings (`/en/account-js/`), Job Alerts (`/en/mysearches-j/`, "Add an Email Alert"), Saved Jobs (`/en/myjobs/`), CV builder (`/en/mycvs/`: target job, personal and contact details, experience, references, memberships, photo), Cover Letters (`/en/cover-letter/`) | Each area has its own AJAX endpoint (mailbox, dashboards, interviews) |
 | **Localisation** | Full Arabic site under `/ar/` with `dir=rtl`, and a language switch | Job content stays in English |
-| **Platform and integrations** | JobPosting JSON-LD, sitemap, `robots.txt`, analytics (GA, Hotjar), social links, "Free Resources" (ownmycareer.com) | Third-party pages are out of scope |
+| **Platform and integrations** | JobPosting JSON-LD, `/sitemap.xml`, `/robots.txt`, analytics (GA, Hotjar). Outbound links: the logo to bupa.com.sa, social networks, "Free Resources" (ownmycareer.com), talentera.com | Only the links themselves are checked. The destination sites are out of scope. |
 
 ---
 
@@ -84,11 +88,11 @@ These are candidate defects and risks, found by exploring and confirmed with a s
 | # | Finding | Evidence | Severity |
 |---|---|---|---|
 | F1 | **The JobPosting structured data on job pages is invalid JSON.** Raw control characters inside `description` break parsing, so Google for Jobs may not list these jobs. | `JSON.parse` fails: "Bad control character in string literal" | High |
-| F2 | **Accessibility (WCAG 2.1 AA):** low color contrast on every page (69 cases on the results page), unnamed links (icon links such as social and save) and unnamed selects (sort, pagination), and a missing image `alt`. | axe-core, 4 to 6 failed rules per page | High |
+| F2 | **Accessibility (WCAG 2.1 AA):** low color contrast on every portal page tested (69 cases on the results page), unnamed links (icon links such as social and save) and unnamed selects (sort, pagination), and a missing image `alt`. | axe-core, 4 to 6 failed rules per page | High |
 | F3 | **Zoom is disabled on mobile** by the viewport meta tag (WCAG 1.4.4). | axe `meta-viewport` fails on every page | Medium |
 | F4 | **Registration and forgot-password fields have no labels,** only placeholders. | No `<label>` or `aria-label` on the fields | Medium |
-| F5 | **Most pages have no `<h1>`:** home, About pages, Hiring Process, search results, Interview Invites. | DOM check across pages | Medium |
-| F6 | **Some pages are slow to finish loading.** Home fires its `load` event at about 11 s, even though content is ready at about 1.9 s. Hiring Process took about 12.8 s, and the Arabic home about 9.9 s. | Navigation Timing API | Medium |
+| F5 | **Most portal pages have no `<h1>`:** the portal home, About pages, Hiring Process, search results, Interview Invites. | DOM check across pages | Medium |
+| F6 | **Some portal pages are slow to finish loading.** The portal home (`/en/`) fires its `load` event at about 11 s, even though content is ready at about 1.9 s. Hiring Process took about 12.8 s, and the Arabic home (`/ar/home/`) about 9.9 s. | Navigation Timing API | Medium |
 | F7 | **Small tap targets:** 10 to 13 links or buttons under 24 px per page on mobile (WCAG 2.5.8). | iPhone 13 viewport | Low |
 | F8 | **Out-of-range pages are handled inconsistently.** With 49 jobs (5 pages), `?page=6` says *"Sorry, no jobs matched your search criteria"*, but `?page=99` silently shows page 1. | The JSON API and the UI agree on both | Low |
 | F9 | **The Arabic header still says "Login" in English.** | Screenshot of the Arabic results page | Low |
@@ -118,10 +122,11 @@ These are candidate defects and risks, found by exploring and confirmed with a s
 | **P0** | Job data correctness (API) and JobPosting structured data | Wrong or missing jobs cost applicants directly, and F1 is live. |
 | **P1** | CV builder, Job Alerts, Saved Jobs, Mailbox, Interview Invites, forgot password, Cover Letters | Used after sign-in by active candidates, with medium impact |
 | **P1** | Arabic / RTL, mobile, accessibility | A large share of users in KSA, legal and ethical duty, and several open defects |
-| **P2** | Content pages, FAQ, footer and social links, language switch on content pages | Low change rate and low impact |
+| **P2** | Portal content pages, FAQ, outbound footer and social links (their targets only), language switch on content pages | Low change rate and low impact |
 
 **Out of scope:**
-- third-party sites (social networks, ownmycareer.com)
+- **the corporate website bupa.com.sa** (insurance products and services), which the portal links to from its logo and footer
+- other external sites the portal links to (social networks, ownmycareer.com, talentera.com, bayt.com)
 - how Google's reCAPTCHA works
 - the recruiter and employer side, which isn't visible from the candidate portal
 - load or stress testing on production

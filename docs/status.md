@@ -2,7 +2,9 @@
 
 Snapshot of where the automation stands. Last updated: **2026-09-25**.
 
-**Scope:** automate the end-to-end job application flow on the live portal https://careers.bupa.com.sa/: log in, find a job, apply. Built with Playwright + TypeScript, using the Page Object Model.
+**Scope:** the careers portal https://careers.bupa.com.sa/ only. The corporate site bupa.com.sa is out of scope.
+- **Part 1:** automate the end-to-end job application flow (log in, find a job, apply), built with Playwright + TypeScript and the Page Object Model.
+- **Part 2:** explore the whole portal and propose a test automation plan for it.
 
 ## Summary
 
@@ -14,6 +16,7 @@ Snapshot of where the automation stands. Last updated: **2026-09-25**.
   - Negative login checks.
 - **Cross-browser:** Firefox and WebKit pass the login checks, and WebKit passed the real apply-withdraw run. The site keeps one active session per account, so logged-in runs on several browsers at once need one account per browser. With a single account, run one browser at a time.
 - **Decided:** screening questionnaires are never answered. Jobs that need one are skipped.
+- **Part 2 done:** a full tour of the careers portal and the [test automation plan](test-automation-plan.md). The tour reported 15 findings. The main ones are invalid JobPosting structured data on job pages (F1, High), several accessibility failures (F2–F5), and slow page loads (F6).
 
 ## Features
 
@@ -54,6 +57,17 @@ Statuses:
 | Negative | Unknown account → site error message, still logged out | Verified | `tests/specs/logged-out/login.spec.ts` |
 | Negative | Empty fields → "This field is required" (checked in the browser) | Verified | `tests/specs/logged-out/login.spec.ts` |
 
+## Part 2: test automation plan
+
+| Item | Status | Where |
+|---|---|---|
+| Tour of careers.bupa.com.sa: public pages, search, job pages, registration and forgot-password forms (not submitted), the Arabic site, mobile, and the candidate account (read-only) | Done | method in plan section 2 |
+| Accessibility (axe, WCAG 2.1 AA), load timings, security headers, robots.txt, sitemap and background-call review | Done | plan section 4 |
+| Findings F1–F15, each confirmed with a second check | Reported, not yet confirmed by the platform team | plan section 4 |
+| Test automation plan: scope, test types, catalogue of 38 scenarios, tooling, CI/CD, rollout | Done | [test-automation-plan.md](test-automation-plan.md) |
+| Word copies of the plan and the interview prep pack | Done | outside the repo, next to the assessment folder |
+| Building the plan's tests (API, accessibility, SEO, visual…) | Not started (a proposal) | plan section 12 |
+
 ## Verification evidence
 
 - **First real `apply-withdraw` run** on Chromium (keyword "Manager"), run by the account owner: passed.
@@ -67,7 +81,6 @@ Statuses:
 ## Known limitations
 
 - **One active session per account.** Found on the first cross-browser run: logging in on Firefox, then WebKit, ended the Chromium and Firefox sessions, so only WebKit's apply run passed. Logged-in runs on several browsers together need one account per browser (`USER_EMAIL_<BROWSER>`). With a single account, run one browser at a time.
-
 - **The verification step needs a person.** A reCAPTCHA v2 checkbox appears on every login, and the suite never automates or bypasses it. When a saved session expires, someone runs `npm run auth` again, once per browser in use.
 - **Not CI-ready**, for the same reason.
 - **Live data changes.** The job is chosen at run time, so which job gets applied to can differ between runs.
@@ -78,3 +91,7 @@ Statuses:
 1. How long does a saved session last before `npm run auth` is needed again?
 2. Verification codes: how long is a code valid, and how does resending work? This isn't handled yet.
 3. For Talentera: is there a test environment or account where reCAPTCHA is disabled or uses Google's test keys?
+4. For Talentera, from the tour:
+   - Is anonymous access to job pages intended (F11)?
+   - Is the `about-us` rule in `robots.txt` intended (F10)?
+   - Is there an API to seed and clean up test data? (The full list is in plan section 14.)

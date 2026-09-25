@@ -2,6 +2,8 @@
 
 How this project is set up, how it's organised, and the conventions the code follows. Read this before changing or extending the suite.
 
+It describes the **part 1** suite, which automates the apply flow. The **part 2** [test automation plan](test-automation-plan.md) covers the whole careers portal. Its section 10 shows how this structure would grow, with API, accessibility, SEO, visual and monitoring suites next to these specs.
+
 ## 1. Getting started
 
 Follow the [Quick start in the README](../README.md#quick-start) first. Then:
@@ -160,6 +162,8 @@ When the site shows the same control twice with the same target, such as the two
 - **Must start logged out** (such as a wrong-password check): put it in `tests/specs/logged-out/`. It runs in the `<browser>-logged-out` projects, with no session and no setup (only the cookie consent is pre-set). It still runs when the saved session has expired, and it can never trigger the verification step. Use made-up accounts only: failed logins against the real account could lock it.
 
 **New test data:** add a JSON file under `tests/test-data/` and describe its shape in `types.ts`.
+
+**What to build next:** the plan's [test catalogue](test-automation-plan.md#7-test-catalogue) lists the scenarios, with IDs, types and priorities. The first ones it suggests are the search API tests (JD-01 to 05) and the JSON-LD check (JD-10). They're read-only, so they can run against production. Follow the same conventions as above. A new suite type (for example `tests/api/`) gets its own project in `playwright.config.ts`. API tests need no browser and no session.
 
 ## 9. Debugging
 
