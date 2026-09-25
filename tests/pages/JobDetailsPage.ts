@@ -27,6 +27,7 @@ export class JobDetailsPage extends BasePage {
   async goto(url: string): Promise<void> {
     await this.open(url);
     await expect(this.title).toBeVisible();
+    await this.ensureLoggedIn();
   }
 
   async canApply(): Promise<boolean> {

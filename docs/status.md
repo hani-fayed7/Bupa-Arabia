@@ -12,7 +12,7 @@ Snapshot of where the automation stands. Last updated: **2026-09-25**.
   - Job search.
   - A real **apply → verify → withdraw** run.
   - Negative login checks.
-- **Cross-browser:** Firefox and WebKit are supported. Their logged-out login checks pass. Their logged-in runs need one `npm run auth` login per browser first.
+- **Cross-browser:** Firefox and WebKit pass the login checks, and WebKit passed the real apply-withdraw run. The site keeps one active session per account, so logged-in runs on several browsers at once need one account per browser. With a single account, run one browser at a time.
 - **Decided:** screening questionnaires are never answered. Jobs that need one are skipped.
 
 ## Features
@@ -32,7 +32,10 @@ Statuses:
 | Config | `SLOW_MO` to slow every action down for demos | Verified | `playwright.config.ts` |
 | Browsers | Projects per browser from `BROWSERS` (chromium, firefox, webkit), each with its own session file | Verified | `playwright.config.ts` |
 | Browsers | Login checks on Firefox and WebKit | Verified | `*-logged-out` projects |
-| Browsers | Logged-in apply flow on Firefox and WebKit | Built | needs `npm run auth` once per browser |
+| Browsers | Logged-in apply flow on WebKit | Verified | real apply-withdraw run passed |
+| Browsers | Logged-in apply flow on Firefox | Built | ran into the one-session-per-account rule; needs its own account or a run on its own |
+| Browsers | Guard: browsers sharing one account can't run logged-in specs together | Verified | `auth.setup.ts` |
+| Auth | Fail fast with an explanation when a session was ended elsewhere | Verified | `BasePage.ensureLoggedIn` |
 | Auth | Email + password login, fail-fast on rejected credentials | Verified | `LoginPage` |
 | Auth | Verification step (reCAPTCHA + emailed code) completed by a person in a headed run | Verified | `OtpPage.completeByHand`, `auth.setup.ts` |
 | Auth | Saved-session reuse and re-validation (~3s, no login) | Verified | `auth.setup.ts` |
@@ -58,9 +61,12 @@ Statuses:
 - **`APPLY_MODE=dry-run npm test` on Chromium:** 4 of 4 passed (setup, 2 login checks, apply spec).
 - **`BROWSERS=firefox,webkit`, logged-out projects:** 4 of 4 passed. Firefox setup without a session fails fast with a browser-specific message.
 - **`SLOW_MO=500`** measurably slows the run. Invalid values are rejected.
+- **First cross-browser run (all three browsers, one shared account):** 10 of 12 passed, including the WebKit apply-withdraw run. Chromium and Firefox were logged out mid-run by the later logins, which revealed the one-session-per-account rule. Firefox and WebKit logins showed no reCAPTCHA.
 - **The first real login** confirmed the logged-in flag (`is_logged_1`, cookie `ISLOGGED…=1`).
 
 ## Known limitations
+
+- **One active session per account.** Found on the first cross-browser run: logging in on Firefox, then WebKit, ended the Chromium and Firefox sessions, so only WebKit's apply run passed. Logged-in runs on several browsers together need one account per browser (`USER_EMAIL_<BROWSER>`). With a single account, run one browser at a time.
 
 - **The verification step needs a person.** A reCAPTCHA v2 checkbox appears on every login, and the suite never automates or bypasses it. When a saved session expires, someone runs `npm run auth` again, once per browser in use.
 - **Not CI-ready**, for the same reason.

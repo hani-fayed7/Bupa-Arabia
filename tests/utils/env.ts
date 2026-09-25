@@ -7,7 +7,7 @@ import path from 'node:path';
  * - `.env` is loaded once here (Node's built-in loader, no dotenv dependency).
  *   Variables already set in the shell/CI win over the file.
  * - Values are exposed through getters, so a missing credential fails only when
- *   something actually needs it (e.g. reusing a saved session never reads the credentials).
+ *   something actually needs it (e.g. the logged-out specs never read the credentials).
  */
 const ENV_FILE = path.resolve(__dirname, '../../.env');
 if (fs.existsSync(ENV_FILE)) {
@@ -75,11 +75,17 @@ export const env = {
     const url = process.env.BASE_URL?.trim() || 'https://careers.bupa.com.sa/en/';
     return url.endsWith('/') ? url : `${url}/`;
   },
-  get userEmail(): string {
-    return required('USER_EMAIL');
-  },
-  get userPassword(): string {
-    return required('USER_PASSWORD');
+  /**
+   * Account used by one browser: USER_EMAIL_<BROWSER> / USER_PASSWORD_<BROWSER> (e.g. USER_EMAIL_FIREFOX)
+   * if set, otherwise the shared USER_EMAIL / USER_PASSWORD. The site keeps one active session per
+   * account, so browsers that run logged-in specs together each need their own account.
+   */
+  credentials(browser: BrowserName): { email: string; password: string } {
+    const suffix = browser.toUpperCase();
+    return {
+      email: process.env[`USER_EMAIL_${suffix}`]?.trim() || required('USER_EMAIL'),
+      password: process.env[`USER_PASSWORD_${suffix}`]?.trim() || required('USER_PASSWORD'),
+    };
   },
   get applyMode(): ApplyMode {
     return oneOf('APPLY_MODE', APPLY_MODES, 'apply-withdraw');

@@ -49,7 +49,8 @@ These shaped every milestone:
 
 ## Next
 
-- [ ] Run `npm run auth` with `BROWSERS=firefox,webkit` (one human login per browser), then the apply flow on those browsers.
+- [x] Cross-browser run: WebKit apply flow verified. It revealed the one-session-per-account rule, so the setup now blocks shared accounts and pages detect a lost session.
+- [ ] Firefox apply flow: run it on its own (`BROWSERS=firefox`), or register a second test account for `USER_EMAIL_FIREFOX`.
 - [ ] Decide whether `searchKeyword` should become a list of keywords (data-driven runs).
 
 ## Later / optional

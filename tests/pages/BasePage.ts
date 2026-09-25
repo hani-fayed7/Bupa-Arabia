@@ -46,6 +46,19 @@ export abstract class BasePage {
     return (await this.loggedInFlag.count()) > 0;
   }
 
+  /**
+   * Fails fast with an explanation when a page that needs a session is shown logged out, instead of
+   * letting a later step time out (e.g. "Apply Now" is also shown to anonymous visitors).
+   */
+  async ensureLoggedIn(): Promise<void> {
+    if (await this.isLoggedIn()) return;
+    const browser = this.page.context().browser()?.browserType().name() ?? 'this browser';
+    throw new Error(
+      `Not logged in: the saved ${browser} session was rejected. The site keeps one active session per ` +
+        'account, so a login elsewhere (another browser, or the website) ends this one. Run `npm run auth`.',
+    );
+  }
+
   /** Waits for the server-rendered logged-in flag (survives the redirects after login). */
   async waitForLoggedIn(options?: { timeout?: number }): Promise<void> {
     await expect(this.loggedInFlag).toBeAttached(options);

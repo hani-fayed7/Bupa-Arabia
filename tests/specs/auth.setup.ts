@@ -15,6 +15,18 @@ const HUMAN_STEP_TIMEOUT_MS = 4 * 60_000;
 
 setup('authenticate', async ({ page, headless, browserName, homePage, loginPage }) => {
   const sessionFile = authFile(browserName);
+  const account = env.credentials(browserName);
+
+  // One active session per account: browsers sharing an account would log each other out mid-run.
+  const sharing = env.browsers.filter((b) => b !== browserName && env.credentials(b).email === account.email);
+  if (sharing.length > 0) {
+    throw new Error(
+      `${[browserName, ...sharing].join(', ')} share the account ${account.email}. The site keeps one active ` +
+        'session per account, so their logged-in specs would log each other out. Give each browser its own ' +
+        `account (USER_EMAIL_${browserName.toUpperCase()} / USER_PASSWORD_${browserName.toUpperCase()}), ` +
+        `or run one browser at a time (BROWSERS=${browserName}).`,
+    );
+  }
 
   await homePage.goto();
   if (await homePage.isLoggedIn()) {
@@ -33,13 +45,13 @@ setup('authenticate', async ({ page, headless, browserName, homePage, loginPage 
   setup.setTimeout(HUMAN_STEP_TIMEOUT_MS + 60_000);
   await loginPage.goto();
   await loginPage.cookieBanner.acceptIfShown();
-  const otpPage = await loginPage.login(env.userEmail, env.userPassword);
+  const otpPage = await loginPage.login(account.email, account.password);
 
   console.log(
     [
       '',
       `>>> Action needed in the ${browserName} window:`,
-      `    ${(await otpPage.hasCaptcha()) ? 'tick "I\'m not a robot", ' : ''}enter the verification code emailed to ${env.userEmail}, then click Verify.`,
+      `    ${(await otpPage.hasCaptcha()) ? 'tick "I\'m not a robot", ' : ''}enter the verification code emailed to ${account.email}, then click Verify.`,
       `    Waiting up to ${HUMAN_STEP_TIMEOUT_MS / 60_000} minutes...`,
       '',
     ].join('\n'),

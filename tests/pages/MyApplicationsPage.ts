@@ -16,6 +16,7 @@ export class MyApplicationsPage extends BasePage {
 
   async goto(): Promise<void> {
     await this.open('my-applications/');
+    await this.ensureLoggedIn();
     await expect(this.heading).toBeVisible();
   }
 

@@ -20,7 +20,7 @@ SLOW_MO=500 npx playwright test --ui   # watch it step by step
 ## Design rationale
 
 - **The reCAPTCHA is never bypassed.** Every login ends with a reCAPTCHA checkbox and an emailed 4-digit code. A person completes that step once (`npm run auth`). The session is saved, and every later run checks it and reuses it in about 3 seconds. Unattended runs need the platform to provide a CAPTCHA-free test environment, and `OtpPage.verify(code)` is already in place for that.
-- **Three Playwright projects per browser:** `setup-<browser>` (check or create that browser's session), `<browser>` (logged-in specs) and `<browser>-logged-out` (specs that must start without a session, and still run when it has expired). `BROWSERS=chromium,firefox,webkit` runs a compatibility pass. Each browser keeps its own session, because the site ties a session to the user agent. See the [walkthrough](docs/walkthrough.md#8-extending-the-suite).
+- **Three Playwright projects per browser:** `setup-<browser>` (check or create that browser's session), `<browser>` (logged-in specs) and `<browser>-logged-out` (specs that must start without a session, and still run when it has expired). `BROWSERS=chromium,firefox,webkit` runs a compatibility pass. Each browser keeps its own session, because the site ties a session to the user agent. The site also keeps only one active session per account, so a logged-in cross-browser run needs one account per browser (`USER_EMAIL_<BROWSER>`). See the [walkthrough](docs/walkthrough.md#8-extending-the-suite).
 - **Page Object Model with clear roles.**
   - Page objects hold locators and actions, and wait for the state the next step needs.
   - Specs decide what to check and make the assertions.

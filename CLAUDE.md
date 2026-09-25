@@ -22,7 +22,7 @@ BROWSERS=chromium,firefox,webkit npm test        # cross-browser run (each brows
 SLOW_MO=500 npm run test:headed                  # slowed-down visible run for demos
 ```
 
-Config comes from `.env` (copy `.env.example`): `USER_EMAIL`, `USER_PASSWORD`, `APPLY_MODE` (`apply-withdraw` default | `dry-run` | `apply`), `MAX_JOB_ATTEMPTS`, `BASE_URL`. `tests/utils/env.ts` is the only place that reads them. It validates lazily, through getters.
+Config comes from `.env` (copy `.env.example`): `USER_EMAIL`, `USER_PASSWORD` (optionally per browser: `USER_EMAIL_<BROWSER>`), `BROWSERS`, `SLOW_MO`, `APPLY_MODE` (`apply-withdraw` default | `dry-run` | `apply`), `MAX_JOB_ATTEMPTS`, `BASE_URL`. `tests/utils/env.ts` is the only place that reads them. It validates lazily, through getters.
 
 ## Architecture
 
@@ -46,6 +46,7 @@ Login state is the server-rendered `<body>` class `is_logged_1` / `is_logged_0` 
 
 ### Site behaviour the code relies on
 - **baseURL is `…/en/` with a trailing slash.** Page paths must be relative with no leading slash (`open('login/')`). A leading slash drops `/en`, so `BasePage.open()` rejects it.
+- **One active session per account.** A new login (another browser, or the website) ends the previous session. `auth.setup.ts` refuses to run when selected browsers share an account. Use `USER_EMAIL_<BROWSER>` / `USER_PASSWORD_<BROWSER>`, or one browser at a time. Logged-in pages call `BasePage.ensureLoggedIn()` to fail fast. Firefox and WebKit logins showed no reCAPTCHA; Chromium did.
 - **The session is bound to the user agent.** Any browser context (including ad-hoc probe scripts) must use `devices['Desktop Chrome']` or the saved session is treated as anonymous. Other browsers would need their own setup project and auth file.
 - **Job detail pages require login** (anonymous → 302 to `/en/login/`).
 - **Loaders:** every spinner is an `<img alt="Loading...">`, so `BasePage.waitForLoaders()` uses `getByAltText(/^Loading/)`. `#modaloverlay`/`#modalpopup` (jQuery SimpleModal) are shared by *all* pop-ups, so don't use them as a "loading" signal. Never use `networkidle` (Google Analytics and Hotjar keep firing).

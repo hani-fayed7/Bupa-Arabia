@@ -12,6 +12,7 @@ Follow the [Quick start in the README](../README.md#quick-start) first. Then:
 |---|---|
 | `BASE_URL` | Site root including the language, `https://careers.bupa.com.sa/en/`. Keep the trailing slash. |
 | `USER_EMAIL`, `USER_PASSWORD` | Test account. It needs a CV on file. |
+| `USER_EMAIL_<BROWSER>`, `USER_PASSWORD_<BROWSER>` | Optional per-browser account, e.g. `USER_EMAIL_FIREFOX`. Needed to run logged-in specs on several browsers together: the site keeps one active session per account. |
 | `APPLY_MODE` | `apply-withdraw` (default), `dry-run` (never submits), or `apply` (keeps the application). |
 | `MAX_JOB_ATTEMPTS` | Maximum submission attempts (default 5). A job that ends in a CV mismatch, a questionnaire or a blocking message is skipped and counts as one. |
 | `BROWSERS` | Comma-separated: `chromium` (default), `firefox`, `webkit`. Each browser has its own saved session, so each needs one `npm run auth` login. |
@@ -27,7 +28,8 @@ Follow the [Quick start in the README](../README.md#quick-start) first. Then:
 | `npm run test:headed` | Same as `npm test`, in a visible browser |
 | `npx playwright test --ui` | UI mode: live browser, step timeline, time-travel through DOM snapshots |
 | `SLOW_MO=500 npm run test:headed` | Visible and slowed down, for demos |
-| `BROWSERS=chromium,firefox,webkit npm test` | Compatibility run on all three engines (each needs its saved session) |
+| `BROWSERS=chromium,firefox,webkit npm test` | Compatibility run on all three engines (needs one account per browser, and each browser's saved session) |
+| `BROWSERS=firefox npm run auth`, then `BROWSERS=firefox npm test` | With a single account: one browser at a time |
 | `npx playwright test --project='*-logged-out'` | Only the logged-out specs, no session needed |
 | `npm run typecheck` | Strict TypeScript check. Playwright itself never checks types. |
 | `npm run report` | HTML report. Failed tests keep a trace, a screenshot and a video. |
@@ -137,6 +139,7 @@ When the site shows the same control twice with the same target, such as the two
 
 | Behaviour | Consequence in the code |
 |---|---|
+| The site keeps **one active session per account**: a new login ends the previous one | Browsers sharing an account can't run logged-in specs together. The setup stops with an explanation, and logged-in pages call `ensureLoggedIn()` to fail fast if the session was ended. |
 | Job pages redirect to login when you're not logged in | Logged-in specs (the `<browser>` projects) depend on their `setup-<browser>` project |
 | The session is tied to the browser's user agent | All contexts use `devices['Desktop Chrome']`. Another browser needs its own setup project and auth file. |
 | Accepting the cookie banner slides it off-screen, and consent is kept in localStorage | `acceptIfShown()` checks the viewport (after a short slide-in window). The saved session keeps the consent, and the logged-out project starts with only that consent flag, so the banner never shows there. |
