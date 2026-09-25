@@ -17,9 +17,6 @@ if (fs.existsSync(ENV_FILE)) {
 export const APPLY_MODES = ['apply-withdraw', 'dry-run', 'apply'] as const;
 export type ApplyMode = (typeof APPLY_MODES)[number];
 
-export const OTP_PROVIDERS = ['manual'] as const;
-export type OtpProviderName = (typeof OTP_PROVIDERS)[number];
-
 /** Saved login session, produced by auth.setup.ts and reused by every spec. */
 export const AUTH_FILE = path.resolve(__dirname, '../../playwright/.auth/user.json');
 
@@ -63,9 +60,6 @@ export const env = {
   },
   get userPassword(): string {
     return required('USER_PASSWORD');
-  },
-  get otpProvider(): OtpProviderName {
-    return oneOf('OTP_PROVIDER', OTP_PROVIDERS, 'manual');
   },
   get applyMode(): ApplyMode {
     return oneOf('APPLY_MODE', APPLY_MODES, 'apply-withdraw');

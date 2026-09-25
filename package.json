@@ -7,7 +7,8 @@
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "auth": "playwright test --project=setup --headed",
-    "report": "playwright show-report"
+    "report": "playwright show-report",
+    "typecheck": "tsc"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
   "homepage": "https://github.com/hani-fayed7/Bupa-Arabia#readme",
   "devDependencies": {
     "@playwright/test": "^1.63.0",
-    "@types/node": "^26.6.2"
+    "@types/node": "^26.6.2",
+    "typescript": "^5.9.3"
   }
 }

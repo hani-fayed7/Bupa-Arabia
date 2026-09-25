@@ -48,7 +48,7 @@ export abstract class BasePage {
   }
 
   /** Waits for the server-rendered logged-in flag (survives the redirects after login). */
-  async waitForLoggedIn(): Promise<void> {
-    await expect(this.body).toHaveClass(/\bis_logged_1\b/);
+  async waitForLoggedIn(options?: { timeout?: number }): Promise<void> {
+    await expect(this.body).toHaveClass(/\bis_logged_1\b/, options);
   }
 }
