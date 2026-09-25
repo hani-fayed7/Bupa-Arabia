@@ -43,7 +43,9 @@ export default defineConfig({
       dependencies: ['setup'],
       use: { ...devices['Desktop Chrome'], storageState: AUTH_FILE },
     },
-    /* Other browsers are optional: enable once the Chromium flow is stable.
+    /* Other browsers are optional. The server ties a session to the browser's user agent, so a
+       session saved by the Chromium setup is rejected elsewhere: each browser needs its own setup
+       project and auth file.
     {
       name: 'firefox',
       testMatch: /.*\.spec\.ts/,
