@@ -17,8 +17,16 @@ if (fs.existsSync(ENV_FILE)) {
 export const APPLY_MODES = ['apply-withdraw', 'dry-run', 'apply'] as const;
 export type ApplyMode = (typeof APPLY_MODES)[number];
 
-/** Saved login session, produced by auth.setup.ts and reused by every spec. */
-export const AUTH_FILE = path.resolve(__dirname, '../../playwright/.auth/user.json');
+export const BROWSERS = ['chromium', 'firefox', 'webkit'] as const;
+export type BrowserName = (typeof BROWSERS)[number];
+
+/**
+ * Saved login session for one browser, produced by auth.setup.ts and reused by its specs.
+ * One file per browser: the server ties a session to the browser's user agent.
+ */
+export function authFile(browser: BrowserName): string {
+  return path.resolve(__dirname, `../../playwright/.auth/${browser}.json`);
+}
 
 function required(name: string): string {
   const value = process.env[name]?.trim();
@@ -36,12 +44,24 @@ function oneOf<T extends string>(name: string, allowed: readonly T[], fallback: 
   return value as T;
 }
 
-function positiveInt(name: string, fallback: number): number {
+/** Comma-separated list, e.g. "chromium,firefox". Duplicates are dropped. */
+function listOf<T extends string>(name: string, allowed: readonly T[], fallback: readonly T[]): T[] {
+  const raw = process.env[name]?.trim();
+  if (!raw) return [...fallback];
+  const values = [...new Set(raw.split(',').map((item) => item.trim()).filter(Boolean))];
+  const invalid = values.filter((value) => !allowed.includes(value as T));
+  if (invalid.length > 0 || values.length === 0) {
+    throw new Error(`Invalid ${name}="${raw}". Expected a comma-separated list of: ${allowed.join(', ')}.`);
+  }
+  return values as T[];
+}
+
+function integerAtLeast(name: string, min: number, fallback: number): number {
   const raw = process.env[name]?.trim();
   if (!raw) return fallback;
   const value = Number(raw);
-  if (!Number.isInteger(value) || value < 1) {
-    throw new Error(`Invalid ${name}="${raw}". Expected a positive integer.`);
+  if (!Number.isInteger(value) || value < min) {
+    throw new Error(`Invalid ${name}="${raw}". Expected an integer ≥ ${min}.`);
   }
   return value;
 }
@@ -65,6 +85,14 @@ export const env = {
     return oneOf('APPLY_MODE', APPLY_MODES, 'apply-withdraw');
   },
   get maxJobAttempts(): number {
-    return positiveInt('MAX_JOB_ATTEMPTS', 5);
+    return integerAtLeast('MAX_JOB_ATTEMPTS', 1, 5);
+  },
+  /** Browsers to run. Chromium only by default: every extra browser needs its own human login. */
+  get browsers(): BrowserName[] {
+    return listOf('BROWSERS', BROWSERS, ['chromium']);
+  },
+  /** Delay in ms added to every browser action, to follow a headed run by eye (0 = off). */
+  get slowMo(): number {
+    return integerAtLeast('SLOW_MO', 0, 0);
   },
 };

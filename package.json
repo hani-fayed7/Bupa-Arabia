@@ -6,7 +6,7 @@
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed",
-    "auth": "playwright test --project=setup --headed",
+    "auth": "playwright test --project=setup-* --headed",
     "report": "playwright show-report",
     "typecheck": "tsc"
   },

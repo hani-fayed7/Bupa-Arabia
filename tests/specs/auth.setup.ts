@@ -1,9 +1,9 @@
-import fs from 'node:fs';
 import { test as setup } from '../fixtures/test';
-import { AUTH_FILE, env } from '../utils/env';
+import { authFile, env } from '../utils/env';
 
 /**
- * Produces playwright/.auth/user.json, the logged-in session every spec reuses.
+ * Produces playwright/.auth/<browser>.json, the logged-in session that browser's specs reuse.
+ * The project (setup-<browser>) already starts from that file when it exists.
  *
  * Login = email + password, then a verification step guarded by reCAPTCHA + an emailed code.
  * That step is done by a person on purpose (a CAPTCHA must not be bypassed), so:
@@ -13,20 +13,19 @@ import { AUTH_FILE, env } from '../utils/env';
  */
 const HUMAN_STEP_TIMEOUT_MS = 4 * 60_000;
 
-// Start from the saved session, if there is one, so it can be validated and reused.
-setup.use({ storageState: fs.existsSync(AUTH_FILE) ? AUTH_FILE : undefined });
+setup('authenticate', async ({ page, headless, browserName, homePage, loginPage }) => {
+  const sessionFile = authFile(browserName);
 
-setup('authenticate', async ({ page, headless, homePage, loginPage }) => {
   await homePage.goto();
   if (await homePage.isLoggedIn()) {
     // Re-save so any cookies the server rotated are kept fresh.
-    await page.context().storageState({ path: AUTH_FILE });
+    await page.context().storageState({ path: sessionFile });
     return;
   }
 
   if (headless !== false) {
     throw new Error(
-      'No valid saved session. Logging in needs a person (reCAPTCHA + emailed code): run `npm run auth` first.',
+      `No valid saved ${browserName} session. Logging in needs a person (reCAPTCHA + emailed code): run \`npm run auth\` first.`,
     );
   }
 
@@ -39,7 +38,7 @@ setup('authenticate', async ({ page, headless, homePage, loginPage }) => {
   console.log(
     [
       '',
-      '>>> Action needed in the browser window:',
+      `>>> Action needed in the ${browserName} window:`,
       `    ${(await otpPage.hasCaptcha()) ? 'tick "I\'m not a robot", ' : ''}enter the verification code emailed to ${env.userEmail}, then click Verify.`,
       `    Waiting up to ${HUMAN_STEP_TIMEOUT_MS / 60_000} minutes...`,
       '',
@@ -47,5 +46,5 @@ setup('authenticate', async ({ page, headless, homePage, loginPage }) => {
   );
   await otpPage.completeByHand(HUMAN_STEP_TIMEOUT_MS);
 
-  await page.context().storageState({ path: AUTH_FILE });
+  await page.context().storageState({ path: sessionFile });
 });

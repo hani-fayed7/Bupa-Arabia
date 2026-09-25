@@ -1,5 +1,6 @@
-import { defineConfig, devices } from '@playwright/test';
-import { AUTH_FILE, env } from './tests/utils/env';
+import fs from 'node:fs';
+import { defineConfig, devices, type Project } from '@playwright/test';
+import { authFile, env, type BrowserName } from './tests/utils/env';
 
 /**
  * Starting state for logged-out specs: no cookies (so no session), only the cookie-banner consent
@@ -14,6 +15,46 @@ const CONSENT_ONLY_STATE = {
     },
   ],
 };
+
+const DEVICE: Record<BrowserName, string> = {
+  chromium: 'Desktop Chrome',
+  firefox: 'Desktop Firefox',
+  webkit: 'Desktop Safari',
+};
+
+/**
+ * Three projects per browser. The server ties a session to the browser's user agent, so each
+ * browser has its own setup project and its own saved session file.
+ *  - setup-<browser>:       validates that browser's saved session, or logs in (a person completes
+ *                           the reCAPTCHA + emailed code) and saves a new one
+ *  - <browser>:             logged-in specs, starting from that session
+ *  - <browser>-logged-out:  everything in logged-out/: no session and no setup, so it runs
+ *                           even when the session has expired
+ */
+function browserProjects(browser: BrowserName): Project[] {
+  const device = devices[DEVICE[browser]];
+  const sessionFile = authFile(browser);
+  return [
+    {
+      name: `setup-${browser}`,
+      testMatch: /.*\.setup\.ts/,
+      // Start from the saved session, if there is one, so it can be validated and reused.
+      use: { ...device, storageState: fs.existsSync(sessionFile) ? sessionFile : undefined },
+    },
+    {
+      name: browser,
+      testMatch: /.*\.spec\.ts/,
+      testIgnore: '**/logged-out/**',
+      dependencies: [`setup-${browser}`],
+      use: { ...device, storageState: sessionFile },
+    },
+    {
+      name: `${browser}-logged-out`,
+      testDir: './tests/specs/logged-out',
+      use: { ...device, storageState: CONSENT_ONLY_STATE },
+    },
+  ];
+}
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -36,33 +77,13 @@ export default defineConfig({
     locale: 'en-US',
     actionTimeout: 15_000,
     navigationTimeout: 30_000,
+    /* SLOW_MO (ms) slows every action down, to follow a headed run or a demo by eye. */
+    launchOptions: { slowMo: env.slowMo },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
 
-  projects: [
-    {
-      /* Validates the saved session, or logs in (email + password + verification code) and saves a new one. */
-      name: 'setup',
-      testMatch: /.*\.setup\.ts/,
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      /* Starts from the saved session. */
-      name: 'chromium',
-      testMatch: /.*\.spec\.ts/,
-      testIgnore: '**/logged-out/**',
-      dependencies: ['setup'],
-      use: { ...devices['Desktop Chrome'], storageState: AUTH_FILE },
-    },
-    {
-      /* Everything in logged-out/: no session and no setup, so it runs even when the session has expired. */
-      name: 'chromium-logged-out',
-      testDir: './tests/specs/logged-out',
-      use: { ...devices['Desktop Chrome'], storageState: CONSENT_ONLY_STATE },
-    },
-    /* Other browsers are optional. The server ties a session to the browser's user agent, so each
-       browser needs its own setup project and auth file (and its own logged-out project). */
-  ],
+  /* BROWSERS (default "chromium") picks which browsers get projects, e.g. BROWSERS=chromium,firefox,webkit. */
+  projects: env.browsers.flatMap(browserProjects),
 });
