@@ -7,7 +7,6 @@ import { AUTH_FILE, env } from './tests/utils/env';
 export default defineConfig({
   testDir: './tests/specs',
   /* One real account on a live site: parallel sessions can invalidate each other or trigger a CAPTCHA. */
-  fullyParallel: false,
   workers: 1,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
@@ -33,8 +32,6 @@ export default defineConfig({
       /* Validates the saved session, or logs in (email + password + verification code) and saves a new one. */
       name: 'setup',
       testMatch: /.*\.setup\.ts/,
-      /* Room for a person to read the verification code from the inbox and type it in. */
-      timeout: 5 * 60_000,
       use: { ...devices['Desktop Chrome'] },
     },
     {

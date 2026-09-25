@@ -7,7 +7,7 @@ import path from 'node:path';
  * - `.env` is loaded once here (Node's built-in loader, no dotenv dependency).
  *   Variables already set in the shell/CI win over the file.
  * - Values are exposed through getters, so a missing credential fails only when
- *   something actually needs it (e.g. a negative login test runs without USER_PASSWORD).
+ *   something actually needs it (e.g. reusing a saved session never reads the credentials).
  */
 const ENV_FILE = path.resolve(__dirname, '../../.env');
 if (fs.existsSync(ENV_FILE)) {
