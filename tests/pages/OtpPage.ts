@@ -11,28 +11,16 @@ import { BasePage } from './BasePage';
  */
 export class OtpPage extends BasePage {
   readonly codeInput: Locator;
-  readonly verifyButton: Locator;
   readonly captchaFrame: Locator;
 
   constructor(page: Page) {
     super(page);
     this.codeInput = page.getByRole('textbox', { name: 'Verification code' });
-    this.verifyButton = page.getByRole('button', { name: 'Verify' });
     this.captchaFrame = page.locator('iframe[title="reCAPTCHA"]');
   }
 
   async hasCaptcha(): Promise<boolean> {
     return this.captchaFrame.isVisible();
-  }
-
-  /** Submits the code and waits until the site reports the user as logged in. */
-  async verify(code: string): Promise<void> {
-    if (!/^\d{4}$/.test(code)) {
-      throw new Error(`Verification code must be exactly 4 digits, got "${code}".`);
-    }
-    await this.codeInput.fill(code);
-    await this.verifyButton.click();
-    await this.waitUntilVerified();
   }
 
   /**
