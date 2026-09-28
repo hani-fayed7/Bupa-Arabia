@@ -148,3 +148,10 @@ vite.config.ts.timestamp-*
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# LaTeX build output (compile docs/latex with -output-directory outside the repo)
+/docs/latex/*.aux
+/docs/latex/*.log
+/docs/latex/*.out
+/docs/latex/*.toc
+/docs/latex/*.pdf

@@ -6,7 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A technical assessment for Talentera (Bayt.com), about the **live** careers portal https://careers.bupa.com.sa/ (a Talentera deployment). **Scope is the careers portal only.** The corporate site bupa.com.sa is out of scope.
 - **Part 1 (the code):** Playwright + TypeScript end-to-end automation of logging in, then searching for a job, applying, verifying and withdrawing. The Page Object Model is used throughout.
-- **Part 2 (a document):** [docs/test-automation-plan.md](docs/test-automation-plan.md), a plan for testing the whole portal, based on a full tour. It includes findings F1–F15 and a scenario catalogue with IDs such as JD-10.
+- **Part 2 (a document):** [docs/test-automation-plan.md](docs/test-automation-plan.md), a plan for testing the whole portal, based on a full tour. It includes findings F1–F15 and a scenario catalogue with IDs such as JD-10. A separate formal version is at [docs/latex/test-automation-plan.tex](docs/latex/test-automation-plan.tex):
+  - It treats the portal as a standalone web app, with Postman/Newman for API tests, Docker and GitHub Actions.
+  - It adds the scenario IDs CP, JA, SJ and CB. Keep the shared IDs in sync with the Markdown plan.
+  - The `\mine{…}` boxes are gaps for the author's own tour observations. Never fill them with invented content.
+- **The Part 2 version to submit** is [docs/latex/test-automation-plan-concise.tex](docs/latex/test-automation-plan-concise.tex): the required 10-section outline, 5–7 pages.
+  - It's written strictly in the author's first person, so keep it that way in every edit.
+  - Its CV parsing, verification-code and Saved Jobs observations are the author's real data. Don't change them without the author's input.
 
 Clear, defensible design matters as much as passing tests.
 
@@ -75,3 +81,4 @@ Login state is the server-rendered `<body>` class `is_logged_1` / `is_logged_0` 
 - `docs/status.md`, `docs/roadmap.md` and `docs/walkthrough.md` describe the current state, the milestones and the conventions. `docs/test-automation-plan.md` is the part 2 deliverable.
 - **Whenever behaviour, commands, settings or findings change, update those docs and this file in the same change.** The user expects the docs to stay current without being reminded.
 - Word copies of the plan and an interview prep pack are kept outside the repo, in the `Technical Assessment` folder. They're generated from the Markdown, so regenerate them when their source changes.
+- The LaTeX plan compiles with MiKTeX: `pdflatex -output-directory=<dir outside the repo> test-automation-plan.tex`, run twice so the table of contents fills in. MiKTeX's "unsupported Windows" line is only a warning. Don't load `xcolor` with the `[table]` option: the installed `colortbl` is newer than `array` and breaks `tabularx`. The PDF goes next to the Word copies, as `Test-Automation-Plan-Bupa-LaTeX.pdf`.

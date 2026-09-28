@@ -53,11 +53,25 @@ These shaped every milestone:
 - Technical checks: accessibility (axe), load timings, security headers, robots.txt, sitemap and background calls.
 - [test-automation-plan.md](test-automation-plan.md): 15 findings, scope and priorities, test types, 38 catalogued scenarios, tooling, CI/CD and a phased rollout. There's also a Word copy outside the repo.
 
+### Milestone 9: Part 2, formal LaTeX plan (draft)
+- [latex/test-automation-plan.tex](latex/test-automation-plan.tex), a separate document from the Markdown plan. It covers:
+  - the portal as a standalone web app
+  - Agile practices: the testing quadrants, the test pyramid, three amigos, the definition of done
+  - tools: Playwright + TypeScript with the Page Object Model, Postman/Newman for API tests (Playwright `request` only for UI test setup), Docker, GitHub Actions
+  - an assumed QA environment with test hooks
+- New scenario IDs: CP (CV parsing), JA (Job Alerts), SJ (Saved Jobs), CB (CV builder). The existing IDs are unchanged.
+
+### Milestone 10: Part 2, concise plan
+- [latex/test-automation-plan-concise.tex](latex/test-automation-plan-concise.tex): the required 10-section outline, in the first person, 5–7 pages.
+- It includes the author's own findings on CV parsing, the verification code and Saved Jobs.
+- Tools: Postman for API tests, with Playwright `request` only for UI test setup; Git; GitHub Actions, with Docker as one line in the CI section; the HTML report on every run, and Allure for nightly history.
+
 ## Next
 
 - [x] Cross-browser run: WebKit apply flow verified. It revealed the one-session-per-account rule, so the setup now blocks shared accounts and pages detect a lost session.
 - [ ] Firefox apply flow: run it on its own (`BROWSERS=firefox`), or register a second test account for `USER_EMAIL_FIREFOX`.
 - [ ] Decide whether `searchKeyword` should become a list of keywords (data-driven runs).
+- [ ] Formal LaTeX plan (optional, since the concise plan is the one to submit): add the author's own tour observations (CV parsing, registration and emails, Saved Jobs and Job Alerts) where it's marked `\mine{…}`, then rebuild the PDF.
 - [ ] Raise the tour findings with the platform team, starting with F1 (invalid JobPosting JSON-LD) and the accessibility failures, and get answers to plan section 14.
 
 ## Towards the plan (if it's adopted)

@@ -1,0 +1,315 @@
+% Test Automation Plan (concise edition): careers.bupa.com.sa
+% Build: pdflatex test-automation-plan-concise.tex (twice, for cross-references).
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.2cm,headheight=14pt]{geometry}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{array,booktabs,tabularx}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{hyperref}
+
+\definecolor{accent}{HTML}{1F4E79}
+\definecolor{muted}{HTML}{595959}
+\definecolor{codebg}{HTML}{F4F4F4}
+
+\hypersetup{colorlinks=true,linkcolor=accent,urlcolor=accent,
+  pdftitle={Test Automation Plan: careers.bupa.com.sa},pdfauthor={Hani Fayed}}
+
+\titleformat{\section}{\Large\bfseries\color{accent}}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\large\bfseries\color{accent}}{\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{1.3em}{0.5em}
+\titlespacing*{\subsection}{0pt}{0.9em}{0.3em}
+
+\setlist{itemsep=0.1em,topsep=0.25em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
+\setlength{\emergencystretch}{3em}
+\renewcommand{\arraystretch}{1.22}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{muted}Test Automation Plan}
+\fancyhead[R]{\small\color{muted}careers.bupa.com.sa}
+\fancyfoot[L]{\small\color{muted}Hani Fayed}
+\fancyfoot[R]{\small\color{muted}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\lstset{basicstyle=\ttfamily\small,backgroundcolor=\color{codebg},frame=single,
+  rulecolor=\color{codebg},columns=fullflexible,keepspaces=true,xleftmargin=4pt,xrightmargin=4pt}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\begin{document}
+
+% ---------- cover page ----------
+\begin{titlepage}
+\vspace*{4cm}
+{\color{accent}\Huge\bfseries Test Automation Plan\par}
+\vspace{0.6cm}
+{\Large\color{muted} Bupa Arabia careers portal\par}
+\vspace{0.2cm}
+{\large\color{muted} careers.bupa.com.sa\par}
+\vspace{0.8cm}
+{\color{accent}\rule{\linewidth}{0.8pt}}
+\vspace{0.6cm}
+
+\begin{tabular}{@{}ll@{}}
+\textbf{Author} & Hani Fayed \\
+\textbf{Context} & Talentera technical assessment, Part 2 \\
+\textbf{Date} & September 2026 \\
+\end{tabular}
+
+\vfill
+{\small\color{muted} This plan describes how I would approach automated testing of the Bupa Arabia careers
+portal: what to automate, with which tools, in which order, and how the suite would be run and maintained.\par}
+\end{titlepage}
+
+% ---------- contents ----------
+\tableofcontents
+\thispagestyle{empty}
+\newpage
+\setcounter{page}{1}
+
+% ======================================================================
+\section{Objective}
+
+\textbf{Purpose.} The careers portal is where candidates discover jobs at Bupa Arabia and apply for them.
+If a candidate cannot register, sign in, find a job or submit an application, Bupa loses that applicant.
+The purpose of automation is to protect these journeys and give the team fast, trustworthy feedback on
+every change.
+
+\textbf{Main goals}
+\begin{itemize}
+  \item Automate the critical candidate journeys end to end, starting with the ``Apply to a Job'' flow I built in Part 1.
+  \item Check business rules (search results, saved jobs, alerts, access control) quickly at the API level.
+  \item Run a short smoke suite on every change and a fuller regression suite every night.
+  \item Keep the suite stable and easy to maintain as the portal changes.
+\end{itemize}
+
+\textbf{Expected benefits:} faster releases with less manual regression; defects caught before candidates see
+them; consistent coverage across browsers; and reports with screenshots and traces that make failures
+quick to diagnose.
+
+% ======================================================================
+\section{Automation Scope}
+
+\textbf{Main features to cover:} registration with CV upload and parsing; sign-in with the emailed
+verification code; job search and job details; applying for a job; My Applications and withdrawing;
+Saved Jobs; Job Alerts; the CV and profile pages; the English and Arabic versions of the site.
+
+\textbf{Critical user flows}
+\begin{enumerate}
+  \item \textbf{Apply to a Job:} sign in $\rightarrow$ search $\rightarrow$ open a job $\rightarrow$ apply
+        $\rightarrow$ confirm it appears in My Applications $\rightarrow$ withdraw.
+  \item \textbf{Registration:} upload a CV $\rightarrow$ review the parsed details $\rightarrow$ create the account
+        $\rightarrow$ complete the missing fields.
+  \item \textbf{Sign-in:} email and password $\rightarrow$ verification code $\rightarrow$ signed in.
+  \item \textbf{Job discovery:} keyword search, filters, sorting, paging, job details.
+  \item \textbf{Saved Jobs:} save from a job card or job page, see it in Saved Jobs, unsave it.
+\end{enumerate}
+
+\subsection*{What my tour showed}
+I explored the portal as a candidate, in English and Arabic, on desktop and mobile. These observations
+shaped the scope and priorities of this plan:
+
+\begin{tabularx}{\linewidth}{@{}L{3.3cm}Y@{}}
+\toprule
+\textbf{Area} & \textbf{What I observed} \\
+\midrule
+CV parsing & From my PDF CV, name, email, date of birth, job titles, dates, education, work descriptions and
+languages were extracted correctly, and skills were added from keywords. Phone, job location, city and company
+industry were left empty. Parsing took 1--2 minutes, and there is no review step: the account is created and I was
+then sent to the profile to complete the missing fields. With a random \texttt{.txt} file, the page still said
+``We were able to extract the details from your CV'', while asking me to enter my email because it could not be
+read: a misleading success message. Other file types are rejected with a clear message listing
+\texttt{.PDF}, \texttt{.DOC}, \texttt{.DOCX} and \texttt{.TXT}. \\
+Sign-in & Every login asks for a reCAPTCHA and a 4-digit code sent by email. The code arrived within about a minute
+every time and stays valid for 5 minutes. Resending sends a new code and invalidates the old one, and an old code
+shows ``You have entered a wrong code, please enter the correct code and try again.'' Only one session per account
+can be active, and it is tied to the browser. \\
+Accessibility and language & Registration and forgot-password fields have no labels, only placeholders; automated
+accessibility checks found low contrast and unnamed links on every page I tested; the Arabic header still says
+``Login'' in English. \\
+Saved Jobs & Works as expected: the save star appears on job cards and job pages when signed in (and is hidden when
+signed out), the saved state shows correctly, and unsaving works. \\
+\bottomrule
+\end{tabularx}
+
+\textbf{What I would automate:} the critical flows above on the UI; search, job details, saved jobs, alerts and
+access control on the API; negative cases for every form; basic accessibility checks on key pages.
+
+\textbf{What would remain manual}
+\begin{itemize}
+  \item \textbf{The reCAPTCHA on production:} it is never automated or bypassed. In a QA environment it would use
+        Google's test keys; on production a person signs in once and the saved session is reused (as in Part 1).
+  \item \textbf{Exploratory testing} of new features, and usability judgement.
+  \item \textbf{Content and language quality}, especially Arabic wording, which needs a native reader.
+  \item \textbf{Email content and layout}, reviewed by eye once per release.
+  \item \textbf{Screening questionnaires on production:} answers would reach a real recruiter.
+\end{itemize}
+
+% ======================================================================
+\section{Testing Approach}
+
+\begin{tabularx}{\linewidth}{@{}L{2.7cm}Y@{}}
+\toprule
+\textbf{Type} & \textbf{How I would apply it} \\
+\midrule
+UI testing & Playwright tests that drive the portal like a candidate, built on the Page Object Model, limited to the
+flows that only a browser can prove. \\
+API testing & Postman collections for search, job details, saved jobs, alerts and access control. Faster and more
+stable than the UI, so most business rules are checked here. \\
+Smoke testing & A small, fast set: home page loads, search returns jobs, a job page opens, sign-in works. Runs on
+every pull request and after every deployment. \\
+Regression testing & All automated P0 and P1 tests, on all browsers, every night and before each release. \\
+Negative testing & Wrong password and empty fields; wrong, old and expired verification codes; unsupported and
+unreadable CV files (including the misleading \texttt{.txt} message); the save star hidden when signed out;
+protected pages redirecting to login; unusual search input. \\
+\bottomrule
+\end{tabularx}
+
+% ======================================================================
+\section{Tools \& Technologies}
+
+\begin{tabularx}{\linewidth}{@{}L{3.6cm}Y@{}}
+\toprule
+\textbf{Tool} & \textbf{Why} \\
+\midrule
+Playwright & Automatic waiting, Chromium, Firefox and WebKit from one API, saved sign-in sessions, and a trace
+viewer for debugging. I already used it successfully on this portal in Part 1. \\
+TypeScript & Type checking catches mistakes before a test runs, and it is the language Playwright is designed around. \\
+Postman (Newman in CI) & Readable API collections the whole team can open and run, versioned in the repository and
+run from the command line in CI. Playwright's \texttt{request} fixture is used strictly for UI test setup and
+teardown (for example, removing a saved job after a test), so the UI suite never depends on Postman. \\
+Git & Version control, with every test change reviewed through a pull request. \\
+GitHub Actions & Runs the suites automatically on pull requests, on a nightly schedule and after deployments,
+with reports kept as artifacts. \\
+HTML and Allure reports & Playwright's HTML report is produced on every run and includes screenshots, videos and
+traces. Allure is added to the nightly regression run for history and trends across runs. \\
+\bottomrule
+\end{tabularx}
+
+% ======================================================================
+\section{Test Prioritization}
+
+I rate each area by \textbf{business impact}, \textbf{risk of failure} and \textbf{how often it is used}, and
+automate the highest first.
+
+\begin{tabularx}{\linewidth}{@{}l L{4.2cm} Y@{}}
+\toprule
+\textbf{Priority} & \textbf{Area} & \textbf{Reason} \\
+\midrule
+P0 & Critical business flows & \textbf{Apply to a Job} (already automated in Part 1), sign-in, registration, job
+search. If these fail, candidates cannot apply. \\
+P0 & High-risk functionality & CV parsing (slow, some fields left empty, misleading message for unreadable files)
+and the emailed verification code, which every sign-in depends on. \\
+P1 & Frequently used functionality & Job details, filters and sorting, Saved Jobs, My Applications. \\
+P1 & Repetitive regression tests & Form validation, verification-code handling, access to protected pages,
+accessibility and Arabic checks: tedious to repeat by hand every release. \\
+P2 & Lower-priority scenarios & Static content pages, FAQ, footer links, rarely used advanced search options. \\
+\bottomrule
+\end{tabularx}
+
+% ======================================================================
+\section{Automation Framework Structure}
+
+The framework extends the one I built in Part 1:
+\begin{itemize}
+  \item \textbf{Page Objects:} one class per page, holding its locators and actions. Locators use roles, labels and
+        placeholders first, never styling classes.
+  \item \textbf{Test cases:} specs grouped by journey; page objects wait for the page, specs make the assertions.
+  \item \textbf{Test data:} JSON files with no secrets, plus sample CVs (valid and invalid).
+  \item \textbf{Reusable utilities:} environment settings, email mailbox access, accessibility helper.
+  \item \textbf{Configuration:} \texttt{playwright.config.ts} (browsers, base URL, retries) and a \texttt{.env} file for credentials.
+  \item \textbf{Test reports:} generated into their own folders and never committed.
+\end{itemize}
+
+\begin{lstlisting}
+tests/
+  pages/          LoginPage.ts, JobSearchPage.ts, ApplicationPage.ts ...
+  specs/          apply-job.spec.ts, register.spec.ts, saved-jobs.spec.ts ...
+  test-data/      jobs.json, invalid-users.json, cvs/
+  fixtures/       test.ts (shared page objects and accounts)
+  utils/          env.ts, mailbox.ts
+postman/          collections/, environments/
+playwright.config.ts
+.github/workflows/
+\end{lstlisting}
+
+% ======================================================================
+\section{Test Execution}
+
+\textbf{Local execution:} \texttt{npx playwright test} runs everything; single specs, tags (\texttt{--grep @smoke})
+and headed mode make debugging easy; Postman collections run from the app or with Newman.
+
+\textbf{CI execution:} GitHub Actions runs the suites on every pull request, every night and after each deployment.
+The jobs run inside Docker images (the official Playwright and Newman images) so CI and local runs behave the same.
+
+\begin{tabularx}{\linewidth}{@{}L{2.3cm}Y L{3.3cm}@{}}
+\toprule
+\textbf{Suite} & \textbf{Content} & \textbf{When} \\
+\midrule
+Smoke & A handful of \texttt{@smoke} UI tests plus the API collections; a few minutes & Every pull request, after each deployment \\
+Regression & All P0 and P1 tests on every browser, accessibility checks & Nightly, before each release \\
+\bottomrule
+\end{tabularx}
+
+\textbf{Browser coverage:} Chromium, Firefox and WebKit on desktop, plus a mobile viewport for the critical flows.
+
+\textbf{Parallel execution:} read-only tests (search, job pages, API) run in parallel freely. Signed-in tests need
+one test account per parallel worker, because the portal allows only one active session per account.
+
+% ======================================================================
+\section{Reporting \& Maintenance}
+
+\begin{itemize}
+  \item \textbf{Test reports:} the HTML report on every run, Allure for nightly history, and Newman results for the
+        API; all published as CI artifacts.
+  \item \textbf{Screenshots and traces on failure:} Playwright keeps a screenshot, a video and a full trace (every
+        step, network call and console message) for each failed test.
+  \item \textbf{Logging:} named test steps, and the job or account used by each run recorded in the report.
+  \item \textbf{Flaky tests:} they are investigated at once, not hidden by retries. Read-only tests may retry once and
+        are reported as flaky if a retry was needed; tests with side effects (such as applying) never retry. A test
+        that stays flaky is quarantined and fixed within the sprint.
+  \item \textbf{When the website changes:} page objects keep each locator in one place, so a change is fixed once.
+        I would also ask developers for stable \texttt{data-testid} attributes on key controls.
+  \item \textbf{Code review and maintenance:} every test change goes through a pull request with type checking and
+        review; slow or duplicated tests are cleaned up regularly.
+\end{itemize}
+
+% ======================================================================
+\section{Implementation Plan}
+
+\begin{tabularx}{\linewidth}{@{}L{4.3cm}Y@{}}
+\toprule
+\textbf{Phase} & \textbf{Deliverables} \\
+\midrule
+1. Set up framework & Project structure, configuration, page object base, reporting, test accounts
+(largely in place from Part 1). \\
+2. Automate critical flows & Apply to a Job (done in Part 1), sign-in, registration with CV upload, job search. \\
+3. Add API and regression coverage & Postman collections for search, job details, saved jobs and alerts; negative tests;
+Saved Jobs and My Applications UI tests. \\
+4. Integrate with CI/CD & GitHub Actions workflows for smoke and regression, Docker images, reports as artifacts. \\
+5. Expand and maintain & Arabic and mobile coverage, accessibility checks, regular review of flaky and
+slow tests, a test added with each new feature. \\
+\bottomrule
+\end{tabularx}
+
+% ======================================================================
+\section{Conclusion}
+
+My goal is not to automate everything, but to build reliable, maintainable automation around the areas that matter
+most to candidates and to Bupa: applying for a job, signing in, registering with a CV and finding the right job.
+Business rules are checked quickly through the API, a small set of UI tests proves the real journeys work, and
+the parts that need human judgement (the CAPTCHA on production, exploratory testing and language quality) stay
+manual. Built this way, the suite gives fast, trustworthy feedback and stays cheap to maintain as the portal evolves.
+
+\end{document}

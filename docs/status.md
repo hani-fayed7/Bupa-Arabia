@@ -1,6 +1,6 @@
 # Status
 
-Snapshot of where the automation stands. Last updated: **2026-09-25**.
+Snapshot of where the automation stands. Last updated: **2026-09-28**.
 
 **Scope:** the careers portal https://careers.bupa.com.sa/ only. The corporate site bupa.com.sa is out of scope.
 - **Part 1:** automate the end-to-end job application flow (log in, find a job, apply), built with Playwright + TypeScript and the Page Object Model.
@@ -17,6 +17,11 @@ Snapshot of where the automation stands. Last updated: **2026-09-25**.
 - **Cross-browser:** Firefox and WebKit pass the login checks, and WebKit passed the real apply-withdraw run. The site keeps one active session per account, so logged-in runs on several browsers at once need one account per browser. With a single account, run one browser at a time.
 - **Decided:** screening questionnaires are never answered. Jobs that need one are skipped.
 - **Part 2 done:** a full tour of the careers portal and the [test automation plan](test-automation-plan.md). The tour reported 15 findings. The main ones are invalid JobPosting structured data on job pages (F1, High), several accessibility failures (F2–F5), and slow page loads (F6).
+- **Part 2, concise version:** [latex/test-automation-plan-concise.tex](latex/test-automation-plan-concise.tex). It's 5–7 pages in the required 10-section outline, in the first person, and it's the version to submit. It covers:
+  - **CV parsing** (PDF): some fields come out empty (phone, job location, city, company industry). Parsing takes 1–2 minutes, and there's no review step. An unreadable `.txt` file still gets a "We were able to extract the details" message.
+  - **The verification code:** it arrives in under a minute, stays valid for 5 minutes, and a resend invalidates the old code.
+  - **Saved Jobs:** it works, and the save star is hidden when logged out.
+- **Part 2, formal version (draft):** a LaTeX plan, [latex/test-automation-plan.tex](latex/test-automation-plan.tex). It's a separate document, and the Markdown plan stays as it is. The LaTeX plan treats the portal as a standalone web app, with Postman/Newman for API tests, Docker, GitHub Actions and Agile practices. It still has gaps for the author's own tour observations, marked `\mine{…}`.
 
 ## Features
 
@@ -66,6 +71,8 @@ Statuses:
 | Findings F1–F15, each confirmed with a second check | Reported, not yet confirmed by the platform team | plan section 4 |
 | Test automation plan: scope, test types, catalogue of 38 scenarios, tooling, CI/CD, rollout | Done | [test-automation-plan.md](test-automation-plan.md) |
 | Word copies of the plan and the interview prep pack | Done | outside the repo, next to the assessment folder |
+| Concise LaTeX plan (a cover page, a contents page and a 6-page body), in the required 10-section outline and written in the first person. It includes the author's findings on CV parsing, the verification code and Saved Jobs, plus 3–4 key tour findings. | Done | [latex/test-automation-plan-concise.tex](latex/test-automation-plan-concise.tex); the PDF is outside the repo (`Test-Automation-Plan-Bupa-Concise.pdf`) |
+| Formal LaTeX plan (18 pages: 9-page body plus appendices with findings, a 54-scenario catalogue including the new CP/JA/SJ/CB IDs, and example CI and Docker files) | Draft: compiles cleanly, but the author's tour observations are still to add (`\mine{…}` gaps) | [latex/test-automation-plan.tex](latex/test-automation-plan.tex); the PDF is outside the repo (`Test-Automation-Plan-Bupa-LaTeX.pdf`) |
 | Building the plan's tests (API, accessibility, SEO, visual…) | Not started (a proposal) | plan section 12 |
 
 ## Verification evidence

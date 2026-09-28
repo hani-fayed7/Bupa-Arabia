@@ -2,7 +2,7 @@
 
 How this project is set up, how it's organised, and the conventions the code follows. Read this before changing or extending the suite.
 
-It describes the **part 1** suite, which automates the apply flow. The **part 2** [test automation plan](test-automation-plan.md) covers the whole careers portal. Its section 10 shows how this structure would grow, with API, accessibility, SEO, visual and monitoring suites next to these specs.
+It describes the **part 1** suite, which automates the apply flow. The **part 2** [test automation plan](test-automation-plan.md) covers the whole careers portal. Its section 10 shows how this structure would grow, with API, accessibility, SEO, visual and monitoring suites next to these specs. The version to submit is the concise LaTeX plan, [latex/test-automation-plan-concise.tex](latex/test-automation-plan-concise.tex), which uses the required 10-section outline. A longer formal draft, [latex/test-automation-plan.tex](latex/test-automation-plan.tex), proposes Postman/Newman for the API tests (under `postman/`), Docker and GitHub Actions. Compile it with `pdflatex` twice, and use an output directory outside the repo.
 
 ## 1. Getting started
 
