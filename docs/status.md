@@ -51,7 +51,7 @@ Statuses:
 | Auth | Verification step (reCAPTCHA + emailed code) completed by a person in a headed run | Verified | `OtpPage.completeByHand`, `auth.setup.ts` |
 | Auth | Saved-session reuse and re-validation (~3s, no login) | Verified | `auth.setup.ts` |
 | Auth | Fail-fast when headless with no valid session | Verified | `auth.setup.ts` |
-| Auth | Fully automated verification code (`OtpPage.verify(code)`) | Blocked | Needs a test account without reCAPTCHA |
+| Auth | Fully automated verification code (an `OtpPage` method to fill the code and click Verify) | Blocked | Needs a test account without reCAPTCHA |
 | Site | Cookie banner accept (persists through the saved session) | Verified | `CookieBanner` |
 | Site | Spinner / loading-overlay waits | Verified | `BasePage.waitForLoaders` |
 | Search | Keyword search through the UI, list job cards | Verified | `JobSearchPage` |

@@ -6,8 +6,8 @@ import { BasePage } from './BasePage';
  * The 4-digit code is emailed from noreply@careers.bupa.com.sa ("Your Bupa Verification Code").
  *
  * The step is protected by a reCAPTCHA v2 checkbox, which is never automated: a person
- * completes it (see completeByHand). `verify(code)` is kept for a test environment where the
- * CAPTCHA is disabled or uses Google's test keys.
+ * completes it (see completeByHand). In a test environment where the CAPTCHA is disabled or uses
+ * Google's test keys, a method that fills the code and clicks Verify would make this step automatic.
  */
 export class OtpPage extends BasePage {
   readonly codeInput: Locator;

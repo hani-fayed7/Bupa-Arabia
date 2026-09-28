@@ -84,7 +84,7 @@ npm test
            4. apply-withdraw mode: withdraw, and check "Apply Now" is back
 ```
 
-**Why the login needs a person.** Every login ends with a reCAPTCHA checkbox and a 4-digit code sent by email. The suite deliberately never automates or bypasses the CAPTCHA. Instead, a person completes it once, and every later run reuses the saved session. `OtpPage.verify(code)` is ready for a test environment where the CAPTCHA is turned off.
+**Why the login needs a person.** Every login ends with a reCAPTCHA checkbox and a 4-digit code sent by email. The suite deliberately never automates or bypasses the CAPTCHA. Instead, a person completes it once, and every later run reuses the saved session. In a test environment where the CAPTCHA is turned off, a small `OtpPage` method (fill the code, click Verify) would make this step automatic.
 
 ## 4. Writing page objects
 

@@ -85,6 +85,6 @@ These follow the plan's implementation phases (section 9). The first items can r
 ## Blocked: needs the platform owner
 
 - **Fully unattended runs (CI).** This needs a test environment where reCAPTCHA is disabled, uses Google's test keys, or allowlists a test account. Then:
-  - `OtpPage.verify(code)` is already in place.
+  - Add an `OtpPage` method that fills the code and clicks Verify (removed while unused).
   - A code reader can be added: IMAP for a Gmail test account, or Microsoft Graph for Outlook.com.
   - The saved sessions could come from CI secrets.

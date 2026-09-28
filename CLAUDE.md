@@ -46,7 +46,7 @@ Login = email/password (full-page form POST) → verification step with a **reCA
 - Otherwise, in a headed run, it logs in and waits (≤4 min) for a human to finish verification.
 - Headless with no valid session, it fails fast, telling you to run `npm run auth`.
 
-`OtpPage.verify(code)` exists for a future CAPTCHA-free test account.
+`OtpPage` has no method to enter the code yet: it was removed while unused. Add one (fill the code, click Verify) when a CAPTCHA-free test account exists.
 
 Login state is the server-rendered `<body>` class `is_logged_1` / `is_logged_0` (plus cookie `ISLOGGED1975069`). See `BasePage.isLoggedIn()`/`waitForLoggedIn()`.
 
@@ -77,7 +77,9 @@ Login state is the server-rendered `<body>` class `is_logged_1` / `is_logged_0` 
 
 - `docs/status.md`, `docs/roadmap.md` and `docs/walkthrough.md` describe the current state, the milestones and the conventions. `docs/latex/test-automation-plan.tex` is the part 2 deliverable.
 - **Whenever behaviour, commands, settings or findings change, update those docs and this file in the same change.** The user expects the docs to stay current without being reminded.
-- An interview prep pack (Word) is kept outside the repo, in the `Technical Assessment` folder.
+- The current interview guide is `Interview-Preparation-Guide-Bupa.docx`, with a PDF copy, in the `Technical Assessment` folder outside the repo. It covers Part 1 (the code) and Part 2 (the plan).
+  - It's generated from Markdown, so when the code or the plan changes, update the guide in the same change.
+  - The older `Interview-Prep-Bupa-Automation` pack is out of date.
 - The LaTeX plan compiles with MiKTeX: run `pdflatex test-automation-plan.tex` twice, so the table of contents fills in.
   - MiKTeX's "unsupported Windows" line is only a warning.
   - Don't load `xcolor` with the `[table]` option: the installed `colortbl` is newer than `array` and breaks `tabularx`.
