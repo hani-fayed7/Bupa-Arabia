@@ -149,8 +149,9 @@ vite.config.ts.timestamp-*
 /playwright/.cache/
 /playwright/.auth/
 
-# LaTeX build output (compile docs/latex with -output-directory outside the repo)
+# LaTeX build output
 /docs/latex/*.aux
+/docs/latex/*.synctex.gz
 /docs/latex/*.log
 /docs/latex/*.out
 /docs/latex/*.toc

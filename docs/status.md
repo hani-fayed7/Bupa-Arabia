@@ -16,12 +16,15 @@ Snapshot of where the automation stands. Last updated: **2026-09-28**.
   - Negative login checks.
 - **Cross-browser:** Firefox and WebKit pass the login checks, and WebKit passed the real apply-withdraw run. The site keeps one active session per account, so logged-in runs on several browsers at once need one account per browser. With a single account, run one browser at a time.
 - **Decided:** screening questionnaires are never answered. Jobs that need one are skipped.
-- **Part 2 done:** a full tour of the careers portal and the [test automation plan](test-automation-plan.md). The tour reported 15 findings. The main ones are invalid JobPosting structured data on job pages (F1, High), several accessibility failures (F2–F5), and slow page loads (F6).
-- **Part 2, concise version:** [latex/test-automation-plan-concise.tex](latex/test-automation-plan-concise.tex). It's 5–7 pages in the required 10-section outline, in the first person, and it's the version to submit. It covers:
-  - **CV parsing** (PDF): some fields come out empty (phone, job location, city, company industry). Parsing takes 1–2 minutes, and there's no review step. An unreadable `.txt` file still gets a "We were able to extract the details" message.
-  - **The verification code:** it arrives in under a minute, stays valid for 5 minutes, and a resend invalidates the old code.
-  - **Saved Jobs:** it works, and the save star is hidden when logged out.
-- **Part 2, formal version (draft):** a LaTeX plan, [latex/test-automation-plan.tex](latex/test-automation-plan.tex). It's a separate document, and the Markdown plan stays as it is. The LaTeX plan treats the portal as a standalone web app, with Postman/Newman for API tests, Docker, GitHub Actions and Agile practices. It still has gaps for the author's own tour observations, marked `\mine{…}`.
+- **Part 2 done:** a full tour of the careers portal, and the plan to submit, [latex/test-automation-plan.tex](latex/test-automation-plan.tex).
+  - **Format:** a cover page, a contents page and a body of about 6 pages, in the required 10-section outline, written in the first person.
+  - **Findings in it:**
+    - **CV parsing** (PDF): some fields come out empty (phone, job location, city, company industry). Parsing takes 1–2 minutes, and there's no review step. An unreadable `.txt` file still gets a "We were able to extract the details" message.
+    - **The verification code:** it arrives in under a minute, stays valid for 5 minutes, and a resend invalidates the old code.
+    - **Saved Jobs:** it works, and the save star is hidden when logged out.
+    - **Accessibility:** unlabelled fields.
+    - **The Arabic site:** "Login" still in English.
+    - **Search paging:** pages past the last one are handled inconsistently.  - **Coverage** includes Advanced Search, forgot password and Job Alerts, plus a note on the test environment and test data.
 
 ## Features
 
@@ -66,14 +69,10 @@ Statuses:
 
 | Item | Status | Where |
 |---|---|---|
-| Tour of careers.bupa.com.sa: public pages, search, job pages, registration and forgot-password forms (not submitted), the Arabic site, mobile, and the candidate account (read-only) | Done | method in plan section 2 |
-| Accessibility (axe, WCAG 2.1 AA), load timings, security headers, robots.txt, sitemap and background-call review | Done | plan section 4 |
-| Findings F1–F15, each confirmed with a second check | Reported, not yet confirmed by the platform team | plan section 4 |
-| Test automation plan: scope, test types, catalogue of 38 scenarios, tooling, CI/CD, rollout | Done | [test-automation-plan.md](test-automation-plan.md) |
-| Word copies of the plan and the interview prep pack | Done | outside the repo, next to the assessment folder |
-| Concise LaTeX plan (a cover page, a contents page and a 6-page body), in the required 10-section outline and written in the first person. It includes the author's findings on CV parsing, the verification code and Saved Jobs, plus 3–4 key tour findings. | Done | [latex/test-automation-plan-concise.tex](latex/test-automation-plan-concise.tex); the PDF is outside the repo (`Test-Automation-Plan-Bupa-Concise.pdf`) |
-| Formal LaTeX plan (18 pages: 9-page body plus appendices with findings, a 54-scenario catalogue including the new CP/JA/SJ/CB IDs, and example CI and Docker files) | Draft: compiles cleanly, but the author's tour observations are still to add (`\mine{…}` gaps) | [latex/test-automation-plan.tex](latex/test-automation-plan.tex); the PDF is outside the repo (`Test-Automation-Plan-Bupa-LaTeX.pdf`) |
-| Building the plan's tests (API, accessibility, SEO, visual…) | Not started (a proposal) | plan section 12 |
+| Tour of careers.bupa.com.sa: public pages, search, Advanced Search, job pages, registration and forgot-password forms, the Arabic site, mobile, and the candidate account | Done | the plan, section 2 ("What my tour showed") |
+| Test automation plan: objective, scope, approach, tools, prioritization, framework, execution, reporting, phases, conclusion | Done | [latex/test-automation-plan.tex](latex/test-automation-plan.tex); a PDF copy in the `Technical Assessment` folder (`Test-Automation-Plan-Bupa-Concise.pdf`) |
+| Interview prep pack (Word) | Done | outside the repo, in the `Technical Assessment` folder |
+| Building the plan's tests (API collections, Advanced Search, Job Alerts, forgot password…) | Not started (a proposal) | the plan, section 9 |
 
 ## Verification evidence
 
@@ -99,6 +98,6 @@ Statuses:
 2. Verification codes: how long is a code valid, and how does resending work? This isn't handled yet.
 3. For Talentera: is there a test environment or account where reCAPTCHA is disabled or uses Google's test keys?
 4. For Talentera, from the tour:
-   - Is anonymous access to job pages intended (F11)?
-   - Is the `about-us` rule in `robots.txt` intended (F10)?
-   - Is there an API to seed and clean up test data? (The full list is in plan section 14.)
+   - Is anonymous access to job pages intended? It changed during testing: first a redirect to login, later the page itself.
+   - Is the `about-us` rule in `robots.txt` intended?
+   - Is there an API to seed and clean up test data?

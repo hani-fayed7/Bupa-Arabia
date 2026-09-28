@@ -51,19 +51,12 @@ These shaped every milestone:
 ### Milestone 8: Part 2, portal tour and test automation plan
 - A full tour of **careers.bupa.com.sa** only (bupa.com.sa is out of scope), in English and Arabic, on desktop and mobile, including the candidate account (read-only).
 - Technical checks: accessibility (axe), load timings, security headers, robots.txt, sitemap and background calls.
-- [test-automation-plan.md](test-automation-plan.md): 15 findings, scope and priorities, test types, 38 catalogued scenarios, tooling, CI/CD and a phased rollout. There's also a Word copy outside the repo.
+- A first Markdown plan and a longer formal LaTeX draft, both since removed and replaced by the plan below.
 
-### Milestone 9: Part 2, formal LaTeX plan (draft)
-- [latex/test-automation-plan.tex](latex/test-automation-plan.tex), a separate document from the Markdown plan. It covers:
-  - the portal as a standalone web app
-  - Agile practices: the testing quadrants, the test pyramid, three amigos, the definition of done
-  - tools: Playwright + TypeScript with the Page Object Model, Postman/Newman for API tests (Playwright `request` only for UI test setup), Docker, GitHub Actions
-  - an assumed QA environment with test hooks
-- New scenario IDs: CP (CV parsing), JA (Job Alerts), SJ (Saved Jobs), CB (CV builder). The existing IDs are unchanged.
-
-### Milestone 10: Part 2, concise plan
-- [latex/test-automation-plan-concise.tex](latex/test-automation-plan-concise.tex): the required 10-section outline, in the first person, 5–7 pages.
-- It includes the author's own findings on CV parsing, the verification code and Saved Jobs.
+### Milestone 9: Part 2, the plan to submit
+- [latex/test-automation-plan.tex](latex/test-automation-plan.tex): a cover page, a contents page and a body of about 6 pages, in the required 10-section outline, written in the first person.
+- It includes the author's own findings on CV parsing, the verification code and Saved Jobs, plus the key tour findings.
+- Coverage includes Advanced Search (combinations tested with data-driven Postman runs), forgot password, Job Alerts, paging edge cases, and a note on the test environment and test data.
 - Tools: Postman for API tests, with Playwright `request` only for UI test setup; Git; GitHub Actions, with Docker as one line in the CI section; the HTML report on every run, and Allure for nightly history.
 
 ## Next
@@ -71,17 +64,14 @@ These shaped every milestone:
 - [x] Cross-browser run: WebKit apply flow verified. It revealed the one-session-per-account rule, so the setup now blocks shared accounts and pages detect a lost session.
 - [ ] Firefox apply flow: run it on its own (`BROWSERS=firefox`), or register a second test account for `USER_EMAIL_FIREFOX`.
 - [ ] Decide whether `searchKeyword` should become a list of keywords (data-driven runs).
-- [ ] Formal LaTeX plan (optional, since the concise plan is the one to submit): add the author's own tour observations (CV parsing, registration and emails, Saved Jobs and Job Alerts) where it's marked `\mine{…}`, then rebuild the PDF.
-- [ ] Raise the tour findings with the platform team, starting with F1 (invalid JobPosting JSON-LD) and the accessibility failures, and get answers to plan section 14.
+- [ ] Raise the tour findings with the platform team, starting with the accessibility failures and the misleading CV-parsing message.
 
 ## Towards the plan (if it's adopted)
 
-These follow the [plan's phased rollout](test-automation-plan.md#12-phased-rollout). The first items can run read-only against production, today, in this repo:
-- **API tests for job search** (plan JD-01 to JD-05), built on the `byt_job_search_manager` JSON.
-- **A JSON-LD check on every job page** (plan JD-10). It would catch F1.
-- **Security headers and cookie flags** (plan X-06).
-- **An accessibility baseline** with `@axe-core/playwright` (plan X-01, X-02).
-- **Restructure** into `tests/api`, `tests/e2e`, `tests/a11y`, `tests/seo`… (plan section 10).
+These follow the plan's implementation phases (section 9). The first items can run read-only against production, today, in this repo:
+- **API tests for job search and Advanced Search**, built on the `byt_job_search_manager` JSON.
+- **An accessibility baseline** with `@axe-core/playwright`.
+- **Postman collections** under `postman/`, run by Newman in GitHub Actions.
 
 ## Later / optional
 

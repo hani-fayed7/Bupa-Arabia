@@ -102,8 +102,9 @@ quick to diagnose.
 \section{Automation Scope}
 
 \textbf{Main features to cover:} registration with CV upload and parsing; sign-in with the emailed
-verification code; job search and job details; applying for a job; My Applications and withdrawing;
-Saved Jobs; Job Alerts; the CV and profile pages; the English and Arabic versions of the site.
+verification code; forgot password; job search, advanced search and job details; applying for a job;
+My Applications and withdrawing; Saved Jobs; Job Alerts; the CV and profile pages; the English and Arabic
+versions of the site.
 
 \textbf{Critical user flows}
 \begin{enumerate}
@@ -112,8 +113,12 @@ Saved Jobs; Job Alerts; the CV and profile pages; the English and Arabic version
   \item \textbf{Registration:} upload a CV $\rightarrow$ review the parsed details $\rightarrow$ create the account
         $\rightarrow$ complete the missing fields.
   \item \textbf{Sign-in:} email and password $\rightarrow$ verification code $\rightarrow$ signed in.
-  \item \textbf{Job discovery:} keyword search, filters, sorting, paging, job details.
+  \item \textbf{Forgot password:} request a reset $\rightarrow$ receive the email $\rightarrow$ set a new password
+        $\rightarrow$ sign in with it.
+  \item \textbf{Job discovery:} keyword search, filters, sorting, paging, advanced search, job details.
   \item \textbf{Saved Jobs:} save from a job card or job page, see it in Saved Jobs, unsave it.
+  \item \textbf{Job Alerts:} create an alert from a search $\rightarrow$ edit it $\rightarrow$ receive the alert
+        email with matching jobs $\rightarrow$ delete it.
 \end{enumerate}
 
 \subsection*{What my tour showed}
@@ -140,15 +145,17 @@ accessibility checks found low contrast and unnamed links on every page I tested
 ``Login'' in English. \\
 Saved Jobs & Works as expected: the save star appears on job cards and job pages when signed in (and is hidden when
 signed out), the saved state shows correctly, and unsaving works. \\
+Search paging & Paging past the last page is handled inconsistently: with 5 pages of results, page 6 shows
+``Sorry, no jobs matched your search criteria'', but page 99 silently shows page 1. \\
 \bottomrule
 \end{tabularx}
 
-\textbf{What I would automate:} the critical flows above on the UI; search, job details, saved jobs, alerts and
-access control on the API; negative cases for every form; basic accessibility checks on key pages.
+\textbf{What I would automate:} the critical flows above on the UI; search, advanced search, job details, saved
+jobs, alerts and access control on the API; negative cases for every form; basic accessibility checks on key pages.
 
 \textbf{What would remain manual}
 \begin{itemize}
-  \item \textbf{The reCAPTCHA on production:} it is never automated or bypassed. In a QA environment it would use
+  \item \textbf{The reCAPTCHA on production} (at sign-in and on forgot password): it is never automated or bypassed. In a QA environment it would use
         Google's test keys; on production a person signs in once and the saved session is reused (as in Part 1).
   \item \textbf{Exploratory testing} of new features, and usability judgement.
   \item \textbf{Content and language quality}, especially Arabic wording, which needs a native reader.
@@ -166,13 +173,17 @@ access control on the API; negative cases for every form; basic accessibility ch
 UI testing & Playwright tests that drive the portal like a candidate, built on the Page Object Model, limited to the
 flows that only a browser can prove. \\
 API testing & Postman collections for search, job details, saved jobs, alerts and access control. Faster and more
-stable than the UI, so most business rules are checked here. \\
+stable than the UI, so most business rules are checked here. Advanced search has many fields (keyword match mode,
+location, role, category, posted date, salary range and currency, employment type and more), so its combinations
+are covered by data-driven Postman runs; the UI only checks that the form submits, results match and Reset clears it. \\
 Smoke testing & A small, fast set: home page loads, search returns jobs, a job page opens, sign-in works. Runs on
 every pull request and after every deployment. \\
 Regression testing & All automated P0 and P1 tests, on all browsers, every night and before each release. \\
-Negative testing & Wrong password and empty fields; wrong, old and expired verification codes; unsupported and
-unreadable CV files (including the misleading \texttt{.txt} message); the save star hidden when signed out;
-protected pages redirecting to login; unusual search input. \\
+Negative testing & Wrong password and empty fields; wrong, old and expired verification codes; forgot password
+with an unknown email and an expired reset link; unsupported and unreadable CV files (including the misleading
+\texttt{.txt} message); the save star hidden when signed out; protected pages redirecting to login; unusual search
+input; advanced search with a minimum salary above the maximum, or criteria that match nothing; result pages past
+the last page. \\
 \bottomrule
 \end{tabularx}
 
@@ -211,10 +222,11 @@ P0 & Critical business flows & \textbf{Apply to a Job} (already automated in Par
 search. If these fail, candidates cannot apply. \\
 P0 & High-risk functionality & CV parsing (slow, some fields left empty, misleading message for unreadable files)
 and the emailed verification code, which every sign-in depends on. \\
-P1 & Frequently used functionality & Job details, filters and sorting, Saved Jobs, My Applications. \\
+P1 & Frequently used functionality & Job details, filters and sorting, Advanced Search, Saved Jobs, Job Alerts,
+My Applications, forgot password. \\
 P1 & Repetitive regression tests & Form validation, verification-code handling, access to protected pages,
 accessibility and Arabic checks: tedious to repeat by hand every release. \\
-P2 & Lower-priority scenarios & Static content pages, FAQ, footer links, rarely used advanced search options. \\
+P2 & Lower-priority scenarios & Static content pages, FAQ, footer links, individual advanced search options that are rarely used. \\
 \bottomrule
 \end{tabularx}
 
@@ -235,7 +247,7 @@ The framework extends the one I built in Part 1:
 \begin{lstlisting}
 tests/
   pages/          LoginPage.ts, JobSearchPage.ts, ApplicationPage.ts ...
-  specs/          apply-job.spec.ts, register.spec.ts, saved-jobs.spec.ts ...
+  specs/          apply-job.spec.ts, register.spec.ts, advanced-search.spec.ts ...
   test-data/      jobs.json, invalid-users.json, cvs/
   fixtures/       test.ts (shared page objects and accounts)
   utils/          env.ts, mailbox.ts
@@ -249,6 +261,11 @@ playwright.config.ts
 
 \textbf{Local execution:} \texttt{npx playwright test} runs everything; single specs, tags (\texttt{--grep @smoke})
 and headed mode make debugging easy; Postman collections run from the app or with Newman.
+
+\textbf{Environment and test data:} the full suite runs in a QA environment with dedicated test accounts and
+test job postings. Production gets only read-only smoke tests, because a real application reaches Bupa's HR team.
+For the same reason, my Part 1 suite applies and then withdraws by default, and has a dry-run mode that stops
+before submitting.
 
 \textbf{CI execution:} GitHub Actions runs the suites on every pull request, every night and after each deployment.
 The jobs run inside Docker images (the official Playwright and Newman images) so CI and local runs behave the same.
@@ -295,8 +312,8 @@ one test account per parallel worker, because the portal allows only one active 
 1. Set up framework & Project structure, configuration, page object base, reporting, test accounts
 (largely in place from Part 1). \\
 2. Automate critical flows & Apply to a Job (done in Part 1), sign-in, registration with CV upload, job search. \\
-3. Add API and regression coverage & Postman collections for search, job details, saved jobs and alerts; negative tests;
-Saved Jobs and My Applications UI tests. \\
+3. Add API and regression coverage & Postman collections for search, Advanced Search, job details, saved jobs and
+alerts; negative tests; UI tests for Saved Jobs, Job Alerts, My Applications and forgot password. \\
 4. Integrate with CI/CD & GitHub Actions workflows for smoke and regression, Docker images, reports as artifacts. \\
 5. Expand and maintain & Arabic and mobile coverage, accessibility checks, regular review of flaky and
 slow tests, a test added with each new feature. \\

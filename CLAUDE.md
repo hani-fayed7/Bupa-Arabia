@@ -6,13 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A technical assessment for Talentera (Bayt.com), about the **live** careers portal https://careers.bupa.com.sa/ (a Talentera deployment). **Scope is the careers portal only.** The corporate site bupa.com.sa is out of scope.
 - **Part 1 (the code):** Playwright + TypeScript end-to-end automation of logging in, then searching for a job, applying, verifying and withdrawing. The Page Object Model is used throughout.
-- **Part 2 (a document):** [docs/test-automation-plan.md](docs/test-automation-plan.md), a plan for testing the whole portal, based on a full tour. It includes findings F1–F15 and a scenario catalogue with IDs such as JD-10. A separate formal version is at [docs/latex/test-automation-plan.tex](docs/latex/test-automation-plan.tex):
-  - It treats the portal as a standalone web app, with Postman/Newman for API tests, Docker and GitHub Actions.
-  - It adds the scenario IDs CP, JA, SJ and CB. Keep the shared IDs in sync with the Markdown plan.
-  - The `\mine{…}` boxes are gaps for the author's own tour observations. Never fill them with invented content.
-- **The Part 2 version to submit** is [docs/latex/test-automation-plan-concise.tex](docs/latex/test-automation-plan-concise.tex): the required 10-section outline, 5–7 pages.
+- **Part 2 (a document):** [docs/latex/test-automation-plan.tex](docs/latex/test-automation-plan.tex) is the only plan and the version to submit. It has a cover page, a contents page and a body of about 6 pages, in the required 10-section outline. The earlier Markdown plan and the longer formal draft were removed.
   - It's written strictly in the author's first person, so keep it that way in every edit.
   - Its CV parsing, verification-code and Saved Jobs observations are the author's real data. Don't change them without the author's input.
+  - The invalid JobPosting JSON-LD finding was deliberately removed from it. Don't add it back.
 
 Clear, defensible design matters as much as passing tests.
 
@@ -57,7 +54,7 @@ Login state is the server-rendered `<body>` class `is_logged_1` / `is_logged_0` 
 - **baseURL is `…/en/` with a trailing slash.** Page paths must be relative with no leading slash (`open('login/')`). A leading slash drops `/en`, so `BasePage.open()` rejects it.
 - **One active session per account.** A new login (another browser, or the website) ends the previous session. `auth.setup.ts` refuses to run when selected browsers share an account. Use `USER_EMAIL_<BROWSER>` / `USER_PASSWORD_<BROWSER>`, or one browser at a time. Logged-in pages call `BasePage.ensureLoggedIn()` to fail fast. Firefox and WebKit logins showed no reCAPTCHA; Chromium did.
 - **The session is bound to the user agent.** Any browser context, including ad-hoc probe scripts, must use the same device profile as the browser that saved the session: `Desktop Chrome` for `chromium.json`, `Desktop Firefox` for `firefox.json`, `Desktop Safari` for `webkit.json`. Otherwise the session is treated as anonymous.
-- **Anonymous access to job pages is inconsistent** (plan F11): a 302 to `/en/login/` at first, a 200 later. Anonymous job pages still show "Apply Now", so logged-in state must be checked (`ensureLoggedIn()`), not inferred from the page content. `/job-application/` always requires login.
+- **Anonymous access to job pages is inconsistent:** a 302 to `/en/login/` at first, a 200 later. Anonymous job pages still show "Apply Now", so logged-in state must be checked (`ensureLoggedIn()`), not inferred from the page content. `/job-application/` always requires login.
 - **Loaders:** every spinner is an `<img alt="Loading...">`, so `BasePage.waitForLoaders()` uses `getByAltText(/^Loading/)`. `#modaloverlay`/`#modalpopup` (jQuery SimpleModal) are shared by *all* pop-ups, so don't use them as a "loading" signal. Never use `networkidle` (Google Analytics and Hotjar keep firing).
 - **Cookie banner** (`#privacy_sticky`): accepting only slides it off-screen, and consent lives in localStorage (saved in storageState). Use `acceptIfShown()` (a viewport check), not `addLocatorHandler`.
 - **Stack:** a legacy jQuery/server-rendered stack with Vue-rendered job lists. Utility CSS classes (`grid-10`, `margin_*`) are unstable, so never locate by them. Locator priority: role/label/placeholder → stable ids/names → scoped text. `.job-card`, `#default-login` and `#loginBtn` are acceptable component/form hooks.
@@ -78,7 +75,10 @@ Login state is the server-rendered `<body>` class `is_logged_1` / `is_logged_0` 
 
 ## Docs
 
-- `docs/status.md`, `docs/roadmap.md` and `docs/walkthrough.md` describe the current state, the milestones and the conventions. `docs/test-automation-plan.md` is the part 2 deliverable.
+- `docs/status.md`, `docs/roadmap.md` and `docs/walkthrough.md` describe the current state, the milestones and the conventions. `docs/latex/test-automation-plan.tex` is the part 2 deliverable.
 - **Whenever behaviour, commands, settings or findings change, update those docs and this file in the same change.** The user expects the docs to stay current without being reminded.
-- Word copies of the plan and an interview prep pack are kept outside the repo, in the `Technical Assessment` folder. They're generated from the Markdown, so regenerate them when their source changes.
-- The LaTeX plan compiles with MiKTeX: `pdflatex -output-directory=<dir outside the repo> test-automation-plan.tex`, run twice so the table of contents fills in. MiKTeX's "unsupported Windows" line is only a warning. Don't load `xcolor` with the `[table]` option: the installed `colortbl` is newer than `array` and breaks `tabularx`. The PDF goes next to the Word copies, as `Test-Automation-Plan-Bupa-LaTeX.pdf`.
+- An interview prep pack (Word) is kept outside the repo, in the `Technical Assessment` folder.
+- The LaTeX plan compiles with MiKTeX: run `pdflatex test-automation-plan.tex` twice, so the table of contents fills in.
+  - MiKTeX's "unsupported Windows" line is only a warning.
+  - Don't load `xcolor` with the `[table]` option: the installed `colortbl` is newer than `array` and breaks `tabularx`.
+  - The build files and the PDF in `docs/latex/` are gitignored. A copy of the PDF goes to the `Technical Assessment` folder, as `Test-Automation-Plan-Bupa-Concise.pdf`.
